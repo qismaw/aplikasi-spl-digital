@@ -101,16 +101,26 @@ with tab1:
         nama = col1.text_input("Nama Karyawan")
         nrp = col2.text_input("NRP / DEPT")
         tgl = col1.date_input("Tanggal")
-        jam = col2.text_input("Jam (Contoh: 08:00 - 12:00)")
+        
+        # --- PERUBAHAN INPUT JAM ---
+        # Membagi kolom ke-2 menjadi 2 bagian khusus untuk input jam
+        col_jam1, col_jam2 = col2.columns(2)
+        jam_mulai = col_jam1.time_input("Awal Jam")
+        jam_selesai = col_jam2.time_input("Akhir Jam")
+        # ---------------------------
+        
         alasan = st.text_area("Keterangan Lembur")
         submitted = st.form_submit_button("Kirim Pengajuan")
         
         if submitted:
+            # Menggabungkan jam mulai dan selesai menjadi satu teks (Contoh: 08:00 - 17:00)
+            jam_gabungan = f"{jam_mulai.strftime('%H:%M')} - {jam_selesai.strftime('%H:%M')}"
+            
             df = pd.read_csv(DB_FILE, dtype=str)
             new_id = len(df) + 1
             new_data = {
-                "ID": new_id, "Nama": nama, "NRP_Dept": nrp, "Tanggal": tgl, 
-                "Jam": jam, "Alasan": alasan, "Status": "Pending GL", 
+                "ID": new_id, "Nama": nama, "NRP_Dept": nrp, "Tanggal": str(tgl), 
+                "Jam": jam_gabungan, "Alasan": alasan, "Status": "Pending GL", 
                 "Waktu_GL": None, "Waktu_SH": None
             }
             df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
