@@ -7,16 +7,16 @@ import os
 # Konfigurasi Halaman
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
-# Database Sederhana (CSV) - Menggunakan v3 agar tabel baru terbaca bersih
-DB_FILE = "data_spl_v3.csv"
+# Database Sederhana (CSV) - Menggunakan versi 4
+DB_FILE = "data_spl_v4.csv"
 if not os.path.exists(DB_FILE):
     df = pd.DataFrame(columns=[
-        "ID", "Nama", "NRP_Dept", "Tanggal", "Jam", "Perusahaan", "Alasan", 
+        "ID", "Nama", "NRP", "Section", "Tanggal", "Jam", "Perusahaan", "Alasan", 
         "Status", "Waktu_GL", "Waktu_SH"
     ])
     df.to_csv(DB_FILE, index=False)
 
-# Fungsi Generate PDF Tabel (Sudah Dirapikan)
+# Fungsi Generate PDF Tabel
 def create_pdf(row):
     pdf = FPDF()
     pdf.add_page()
@@ -26,12 +26,12 @@ def create_pdf(row):
     
     pdf.set_font("Arial", "B", 12)
     
-    # Header Logo & Nama Perusahaan
+    # Header Logo & Nama Perusahaan (Diperbarui penulisannya)
     pdf.cell(50, 20, "", border=1) 
     pdf.set_font("Arial", "", 10)
     pdf.multi_cell(0, 10, "PT. Saptaindra Sejati\nSite Maco", border=1, align='L')
     
-    # Menempelkan gambar logo (w diperbesar dari 25 menjadi 42 agar lebih besar & jelas)
+    # Logo
     try:
         pdf.image("logo.png.png", x=9, y=11, w=42) 
     except:
@@ -45,28 +45,22 @@ def create_pdf(row):
     # Body Tabel
     pdf.set_font("Arial", "", 10)
     
-    # Baris 1: NAMA
     pdf.cell(40, 10, " NAMA", border=1)
     pdf.cell(150, 10, f" {row['Nama']}", border=1, ln=True)
     
-    # Baris 2: NRP/DEPT
     pdf.cell(40, 10, " NRP/DEPT", border=1)
-    pdf.cell(80, 10, f" {row['NRP_Dept']}", border=1)
+    pdf.cell(80, 10, f" {row['NRP']} / {row['Section']}", border=1)
     pdf.cell(70, 10, "", border=1, ln=True) 
     
-    # Baris 3: TANGGAL & JAM
     pdf.cell(40, 10, " TANGGAL :", border=1)
     pdf.cell(80, 10, f" {row['Tanggal']}", border=1)
     pdf.cell(30, 10, " JAM :", border=1)
     pdf.cell(40, 10, f" {row['Jam']}", border=1, ln=True)
     
-    # Baris 4: PERUSAHAAN (Opsi Baru)
     pdf.cell(40, 10, " PERUSAHAAN :", border=1)
     pdf.cell(150, 10, f" {row['Perusahaan']}", border=1, ln=True)
     
-    # Baris 5: KETERANGAN
     pdf.cell(190, 10, " Keterangan Lembur :", border="LTR", ln=True)
-    # Tambahan \n\n agar kolom keterangan lumayan luas ke bawah dan rapi
     pdf.multi_cell(190, 10, f" {row['Alasan']}\n\n", border="LBR")
     
     # Bagian Tanda Tangan
@@ -101,14 +95,22 @@ with tab1:
     with st.form("form_spl"):
         col1, col2 = st.columns(2)
         nama = col1.text_input("Nama Karyawan")
-        nrp = col2.text_input("NRP / DEPT")
-        tgl = col1.date_input("Tanggal")
+        nrp = col2.text_input("NRP") 
         
-        # --- PERUBAHAN INPUT JAM (DROP DOWN TERPISAH) ---
+        # OPSI DROP DOWN TERBARU
+        col_sec, col_per = st.columns(2)
+        section = col_sec.selectbox("Section", ["Logistik"]) 
+        perusahaan = col_per.selectbox("Nama Perusahaan", [
+            "PT. Saptaindra Sejati", 
+            "PT. Cheisa Mandiri Utama", 
+            "PT. Borneo Mura Perkasa"
+        ])
+        
+        tgl = st.date_input("Tanggal")
+        
         st.markdown("**Waktu Lembur:**")
         col_jam_awal, col_jam_akhir = st.columns(2)
         
-        # Opsi Jam (00-23) dan Menit (00-59)
         list_jam = [f"{i:02d}" for i in range(24)]
         list_menit = [f"{i:02d}" for i in range(60)]
         
@@ -121,20 +123,17 @@ with tab1:
             c3, c4 = st.columns(2)
             jam_s = c3.selectbox("Jam Selesai", list_jam)
             menit_s = c4.selectbox("Menit Selesai", list_menit)
-        # -----------------------------------------------
         
-        perusahaan = st.selectbox("Nama Perusahaan", ["PT. Sapta Indrasejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa", "Lainnya"])
         alasan = st.text_area("Keterangan Lembur")
         submitted = st.form_submit_button("Kirim Pengajuan")
         
         if submitted:
-            # Menggabungkan pilihan dropdown menjadi format teks 08:00 - 09:00
             jam_gabungan = f"{jam_a}:{menit_a} - {jam_s}:{menit_s}"
             
             df = pd.read_csv(DB_FILE, dtype=str)
             new_id = len(df) + 1
             new_data = {
-                "ID": new_id, "Nama": nama, "NRP_Dept": nrp, "Tanggal": str(tgl), 
+                "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Tanggal": str(tgl), 
                 "Jam": jam_gabungan, "Perusahaan": perusahaan, "Alasan": alasan, 
                 "Status": "Pending GL", "Waktu_GL": None, "Waktu_SH": None
             }
@@ -146,7 +145,6 @@ with tab1:
 with tab2:
     df_gl = pd.read_csv(DB_FILE, dtype=str)
     
-    # Antrean GL
     st.subheader("Menunggu Verifikasi Anda")
     pending_gl = df_gl[df_gl["Status"] == "Pending GL"]
     if pending_gl.empty:
@@ -161,9 +159,7 @@ with tab2:
                 
     st.markdown("---")
     
-    # Riwayat GL
     st.subheader("Riwayat Telah Diverifikasi (Diteruskan ke Sect. Head)")
-    # Menampilkan yang sudah di-approve GL (baik yang masih pending SH maupun sudah final)
     history_gl = df_gl[(df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved")]
     if history_gl.empty:
         st.write("Belum ada riwayat persetujuan.")
@@ -175,7 +171,6 @@ with tab2:
 with tab3:
     df_sh = pd.read_csv(DB_FILE, dtype=str)
     
-    # Antrean Section Head
     st.subheader("Menunggu Verifikasi Akhir")
     pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
     if pending_sh.empty:
@@ -190,7 +185,6 @@ with tab3:
 
     st.markdown("---")
     
-    # Riwayat Section Head & Download
     st.subheader("Arsip Dokumen Selesai (Siap Unduh)")
     approved_sh = df_sh[df_sh["Status"] == "Final Approved"]
     if approved_sh.empty:
@@ -201,7 +195,6 @@ with tab3:
             with col1:
                 st.write(f"📄 **SPL #{row['ID']}** - {row['Nama']} (Selesai: {row['Waktu_SH']})")
             with col2:
-                # Generate PDF di belakang layar saat halaman dimuat
                 file_pdf = create_pdf(df_sh.loc[idx])
                 with open(file_pdf, "rb") as f:
                     st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_{row['ID']}")
