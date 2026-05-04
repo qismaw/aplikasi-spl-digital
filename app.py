@@ -94,7 +94,7 @@ with tab1:
         submitted = st.form_submit_button("Kirim Pengajuan")
         
         if submitted:
-            df = pd.read_csv(DB_FILE)
+            df = pd.read_csv(DB_FILE, dtype=str)
             new_id = len(df) + 1
             new_data = {
                 "ID": new_id, "Nama": nama, "NRP_Dept": nrp, "Tanggal": tgl, 
@@ -107,29 +107,29 @@ with tab1:
 
 # TAB 2: VERIFIKASI GL
 with tab2:
-    df_gl = pd.read_csv(DB_FILE)
+    df_gl = pd.read_csv(DB_FILE, dtype=str) # Tambahan dtype=str agar dibaca sebagai teks
     pending_gl = df_gl[df_gl["Status"] == "Pending GL"]
     if pending_gl.empty:
         st.info("Tidak ada SPL menunggu verifikasi GL.")
     else:
         for idx, row in pending_gl.iterrows():
             if st.button(f"Approve SPL #{row['ID']} ({row['Nama']})", key=f"gl_{row['ID']}"):
-                df_gl.at[idx, "Status"] = "Pending SH"
-                df_gl.at[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                df_gl.loc[idx, "Status"] = "Pending SH" # Ganti .at menjadi .loc
+                df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
                 df_gl.to_csv(DB_FILE, index=False)
                 st.rerun()
 
 # TAB 3: VERIFIKASI SECT HEAD & DOWNLOAD
 with tab3:
-    df_sh = pd.read_csv(DB_FILE)
+    df_sh = pd.read_csv(DB_FILE, dtype=str) # Tambahan dtype=str
     pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
     if pending_sh.empty:
         st.info("Tidak ada SPL menunggu verifikasi Section Head.")
     else:
         for idx, row in pending_sh.iterrows():
             if st.button(f"Final Approve SPL #{row['ID']} ({row['Nama']})", key=f"sh_{row['ID']}"):
-                df_sh.at[idx, "Status"] = "Final Approved"
-                df_sh.at[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                df_sh.loc[idx, "Status"] = "Final Approved" # Ganti .at menjadi .loc
+                df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
                 df_sh.to_csv(DB_FILE, index=False)
                 
                 # Buat PDF setelah final approve
