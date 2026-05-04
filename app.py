@@ -11,14 +11,23 @@ st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.role = ""
-    st.session_state.username = "" # Menyimpan nama GL yang sedang login
+    st.session_state.username = "" 
 
-# Database Sederhana (CSV) - Versi 5 (Tambah Shift dan Nama GL)
-DB_FILE = "data_spl_v5.csv"
+# ==========================================
+# KONFIGURASI AKUN PENGGUNA
+# ==========================================
+AKUN_GL = {
+    "Bapak Andi (GL 1)": "andi123",
+    "Bapak Budi (GL 2)": "budi123",
+    "Bapak Citra (GL 3)": "citra123"
+}
+
+# Database Sederhana (CSV)
+DB_FILE = "data_spl_v6.csv"
 if not os.path.exists(DB_FILE):
     df = pd.DataFrame(columns=[
         "ID", "Nama", "NRP", "Section", "Shift", "Tanggal", "Jam", "Perusahaan", "Alasan", 
-        "Status", "Waktu_GL", "Nama_GL", "Waktu_SH"
+        "Pengawas_Tujuan", "Status", "Waktu_GL", "Nama_GL", "Waktu_SH"
     ])
     df.to_csv(DB_FILE, index=False)
 
@@ -44,64 +53,61 @@ def create_pdf(row):
     pdf.ln(5)
     
     pdf.set_font("Arial", "", 10)
-    
-    # Baris 1: NAMA
     pdf.cell(40, 10, " NAMA", border=1)
     pdf.cell(150, 10, f" {row['Nama']}", border=1, ln=True)
-    
-    # Baris 2: NRP/DEPT & SHIFT (Sejajar di atas JAM)
     pdf.cell(40, 10, " NRP/DEPT", border=1)
     pdf.cell(80, 10, f" {row['NRP']} / {row['Section']}", border=1)
     pdf.cell(30, 10, " SHIFT :", border=1)
     pdf.cell(40, 10, f" {row['Shift']}", border=1, ln=True) 
-    
-    # Baris 3: TANGGAL & JAM
     pdf.cell(40, 10, " TANGGAL :", border=1)
     pdf.cell(80, 10, f" {row['Tanggal']}", border=1)
     pdf.cell(30, 10, " JAM :", border=1)
     pdf.cell(40, 10, f" {row['Jam']}", border=1, ln=True)
-    
-    # Baris 4: PERUSAHAAN
     pdf.cell(40, 10, " PERUSAHAAN :", border=1)
     pdf.cell(150, 10, f" {row['Perusahaan']}", border=1, ln=True)
-    
-    # Baris 5: KETERANGAN
     pdf.cell(190, 10, " Keterangan Lembur :", border="LTR", ln=True)
     pdf.multi_cell(190, 10, f" {row['Alasan']}\n\n", border="LBR")
     
-    # Bagian Tanda Tangan
-    pdf.ln(15)
-    pdf.cell(95, 10, "Diketahui,", align="C")
-    pdf.cell(95, 10, "Disetujui,", ln=True, align="C")
-    pdf.ln(15)
+    # Bagian Tanda Tangan & Cap Digital Watermark
+    pdf.ln(10)
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(95, 5, "Diketahui,", align="C")
+    pdf.cell(95, 5, "Disetujui,", ln=True, align="C")
     
-    gl_sign = f"Digitally Signed: {row['Waktu_GL']}" if str(row['Waktu_GL']) != "nan" else "........................"
-    sh_sign = f"Digitally Signed: {row['Waktu_SH']}" if str(row['Waktu_SH']) != "nan" else "........................"
+    y_pos = pdf.get_y()
     
-    # Menampilkan Nama GL spesifik yang login (jika ada), jika tidak tampilkan default "GL/UH"
-    nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
+    # Cap Digital (Watermark)
+    try:
+        if str(row['Waktu_GL']) != "nan":
+            pdf.image("logo.png.png", x=35, y=y_pos + 2, w=35) 
+        if str(row['Waktu_SH']) != "nan":
+            pdf.image("logo.png.png", x=130, y=y_pos + 2, w=35)
+    except:
+        pass
+        
+    pdf.ln(5) 
+    gl_sign = f"Digitally Signed: {row['Waktu_GL']}" if str(row['Waktu_GL']) != "nan" else ""
+    sh_sign = f"Digitally Signed: {row['Waktu_SH']}" if str(row['Waktu_SH']) != "nan" else ""
     
-    pdf.cell(95, 10, "__________________________", align="C", ln=0)
-    pdf.cell(95, 10, "__________________________", align="C", ln=1)
-    pdf.set_font("Arial", "B", 9)
-    pdf.cell(95, 5, nama_pengawas, align="C") # Nama GL tercetak di sini
-    pdf.cell(95, 5, "Sect. Head", align="C", ln=1)
-    pdf.set_font("Arial", "I", 7)
+    pdf.set_font("Arial", "I", 8)
     pdf.cell(95, 5, gl_sign, align="C")
-    pdf.cell(95, 5, sh_sign, align="C", ln=1)
+    pdf.cell(95, 5, sh_sign, align="C", ln=True)
+    
+    pdf.ln(12) 
+    nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
+    nama_sh = "Haris Abi Wibowo"
+    
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(95, 5, "__________________________", align="C", ln=0)
+    pdf.cell(95, 5, "__________________________", align="C", ln=1)
+    
+    pdf.set_font("Arial", "B", 9)
+    pdf.cell(95, 5, nama_pengawas, align="C") 
+    pdf.cell(95, 5, nama_sh, align="C", ln=1)
     
     filename = f"SPL_{row['ID']}.pdf"
     pdf.output(filename)
     return filename
-
-# ==========================================
-# KONFIGURASI AKUN GL (Bisa Ditambah Sendiri)
-# ==========================================
-AKUN_GL = {
-    "Bapak Andi (GL 1)": "andi123",
-    "Bapak Budi (GL 2)": "budi123",
-    "Bapak Citra (GL 3)": "citra123"
-}
 
 # ==========================================
 # HALAMAN LOGIN
@@ -113,21 +119,22 @@ if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.subheader("Silakan Login")
-        role = st.selectbox("Masuk Sebagai:", ["Pilih Akses...", "Karyawan (Form Input)", "GL/UH (Verifikasi 1)", "Section Head (Verifikasi 2)"])
+        # Tambahan Akses Admin
+        role = st.selectbox("Masuk Sebagai:", [
+            "Pilih Akses...", "Karyawan (Form Input)", "GL/UH (Verifikasi 1)", 
+            "Section Head (Verifikasi 2)", "Admin (Monitoring & Rekapan)"
+        ])
         
-        # Logika Karyawan
         if role == "Karyawan (Form Input)":
             if st.button("Masuk Form SPL"):
                 st.session_state.logged_in = True
                 st.session_state.role = "Karyawan"
                 st.rerun()
                 
-        # Logika GL/UH (Multi-Akun)
         elif role == "GL/UH (Verifikasi 1)":
             nama_gl = st.selectbox("Pilih Nama Anda", list(AKUN_GL.keys()))
             password = st.text_input("Password", type="password")
             if st.button("Login GL"):
-                # Cek apakah password cocok dengan nama GL yang dipilih
                 if password == AKUN_GL[nama_gl]: 
                     st.session_state.logged_in = True
                     st.session_state.role = "GL/UH"
@@ -136,7 +143,6 @@ if not st.session_state.logged_in:
                 elif password != "":
                     st.error("Password Salah!")
                     
-        # Logika Section Head
         elif role == "Section Head (Verifikasi 2)":
             password = st.text_input("Password Section Head", type="password")
             if st.button("Login Sect Head"):
@@ -147,6 +153,18 @@ if not st.session_state.logged_in:
                     st.rerun()
                 elif password != "":
                     st.error("Password Salah!")
+                    
+        # Logika Login Admin
+        elif role == "Admin (Monitoring & Rekapan)":
+            password = st.text_input("Password Admin", type="password")
+            if st.button("Login Admin"):
+                if password == "admin123": # <-- Ubah password Admin di sini
+                    st.session_state.logged_in = True
+                    st.session_state.role = "Admin"
+                    st.session_state.username = "Administrator"
+                    st.rerun()
+                elif password != "":
+                    st.error("Password Salah!")
 
 # ==========================================
 # HALAMAN UTAMA (SETELAH LOGIN)
@@ -154,7 +172,6 @@ if not st.session_state.logged_in:
 else:
     col_title, col_logout = st.columns([8, 1])
     with col_title:
-        # Menampilkan nama yang login di judul dashboard
         nama_user = st.session_state.username if st.session_state.username else "Karyawan"
         st.title(f"📄 Dashboard {st.session_state.role} - {nama_user}")
     with col_logout:
@@ -180,16 +197,14 @@ else:
             col_sec, col_per = st.columns(2)
             section = col_sec.selectbox("Section", ["Logistik"]) 
             perusahaan = col_per.selectbox("Nama Perusahaan", [
-                "PT. Saptaindra Sejati", 
-                "PT. Cheisa Mandiri Utama", 
-                "PT. Borneo Mura Perkasa"
+                "PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa"
             ])
             
-            # --- INPUT TANGGAL & SHIFT ---
             col_tgl, col_shift = st.columns(2)
             tgl = col_tgl.date_input("Tanggal")
             shift = col_shift.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
-            # -----------------------------
+            
+            pengawas_tujuan = st.selectbox("Pengawas (GL) Yang Bertugas", list(AKUN_GL.keys()))
             
             st.markdown("**Waktu Lembur:**")
             col_jam_awal, col_jam_akhir = st.columns(2)
@@ -217,56 +232,53 @@ else:
                 new_data = {
                     "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
                     "Jam": jam_gabungan, "Perusahaan": perusahaan, "Alasan": alasan, 
+                    "Pengawas_Tujuan": pengawas_tujuan, 
                     "Status": "Pending GL", "Waktu_GL": None, "Nama_GL": None, "Waktu_SH": None
                 }
                 df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
                 df.to_csv(DB_FILE, index=False)
-                st.success(f"SPL untuk {nama} berhasil terkirim! Waktu: {jam_gabungan}")
+                st.success(f"SPL berhasil terkirim ke {pengawas_tujuan}! Waktu: {jam_gabungan}")
 
     # ------------------------------------------
     # TAMPILAN KHUSUS GL / UH
     # ------------------------------------------
     elif st.session_state.role == "GL/UH":
         df_gl = pd.read_csv(DB_FILE, dtype=str)
-        
         st.subheader("Menunggu Verifikasi Anda")
-        pending_gl = df_gl[df_gl["Status"] == "Pending GL"]
+        pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
+        
         if pending_gl.empty:
-            st.info("Tidak ada SPL baru.")
+            st.info("Tidak ada SPL baru untuk Anda saat ini.")
         else:
             for idx, row in pending_gl.iterrows():
-                # Tampilan Tombol Format: Nama & Tanggal (Shift)
                 label_tombol = f"Approve: {row['Nama']} & {row['Tanggal']} ({row['Shift']})"
                 if st.button(label_tombol, key=f"gl_{row['ID']}"):
                     df_gl.loc[idx, "Status"] = "Pending SH"
                     df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                    df_gl.loc[idx, "Nama_GL"] = st.session_state.username # Menyimpan siapa GL yang approve
+                    df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
                     df_gl.to_csv(DB_FILE, index=False)
                     st.rerun()
                     
         st.markdown("---")
-        st.subheader("Riwayat Telah Diverifikasi (Diteruskan ke Sect. Head)")
-        # Hanya melihat riwayat yang di-approve oleh GL yang sedang login
+        st.subheader("Riwayat Telah Diverifikasi")
         history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved")) & (df_gl["Nama_GL"] == st.session_state.username)]
         if history_gl.empty:
             st.write("Belum ada riwayat persetujuan dari Anda.")
         else:
             for idx, row in history_gl.iterrows():
-                st.write(f"✅ **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui pada: {row['Waktu_GL']})")
+                st.write(f"✅ **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui: {row['Waktu_GL']})")
 
     # ------------------------------------------
     # TAMPILAN KHUSUS SECTION HEAD
     # ------------------------------------------
     elif st.session_state.role == "Section Head":
         df_sh = pd.read_csv(DB_FILE, dtype=str)
-        
         st.subheader("Menunggu Verifikasi Akhir")
         pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
         if pending_sh.empty:
             st.info("Tidak ada SPL menunggu verifikasi Section Head.")
         else:
             for idx, row in pending_sh.iterrows():
-                # Tampilan Tombol Format: Nama & Tanggal
                 label_tombol = f"Final Approve: {row['Nama']} & {row['Tanggal']} (Oleh: {row['Nama_GL']})"
                 if st.button(label_tombol, key=f"sh_{row['ID']}"):
                     df_sh.loc[idx, "Status"] = "Final Approved"
@@ -287,4 +299,54 @@ else:
                 with col2:
                     file_pdf = create_pdf(df_sh.loc[idx])
                     with open(file_pdf, "rb") as f:
-                        st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_{row['ID']}")
+                        st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_sh_{row['ID']}")
+
+    # ------------------------------------------
+    # TAMPILAN KHUSUS ADMIN (MONITORING & EXCEL)
+    # ------------------------------------------
+    elif st.session_state.role == "Admin":
+        df_admin = pd.read_csv(DB_FILE, dtype=str)
+        
+        # 1. Download Tabel CSV/Excel
+        st.subheader("📊 Tabel Database Seluruh SPL")
+        with open(DB_FILE, "rb") as f:
+            st.download_button("📥 Download Database Format Excel (CSV)", f, file_name="Database_SPL_Maco.csv", mime="text/csv")
+        st.dataframe(df_admin)
+        
+        st.markdown("---")
+        
+        # 2. Tracking Pendingan
+        st.subheader("⏳ Tracking Dokumen Belum Selesai (Pending)")
+        pending_admin = df_admin[df_admin["Status"] != "Final Approved"]
+        if pending_admin.empty:
+            st.success("TIDAK ADA ANTRIAN. Seluruh pengajuan lembur sudah disetujui.")
+        else:
+            for idx, row in pending_admin.iterrows():
+                if row["Status"] == "Pending GL":
+                    posisi = f"Menunggu Persetujuan GL/UH: {row['Pengawas_Tujuan']}"
+                    warna_alert = "warning"
+                else:
+                    posisi = "Menunggu Persetujuan Akhir Section Head"
+                    warna_alert = "info"
+                
+                if warna_alert == "warning":
+                    st.warning(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
+                else:
+                    st.info(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
+                    
+        st.markdown("---")
+        
+        # 3. Download PDF
+        st.subheader("🗂️ Arsip Lengkap Dokumen PDF")
+        approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
+        if approved_admin.empty:
+            st.write("Belum ada dokumen PDF yang di-generate.")
+        else:
+            for idx, row in approved_admin.iterrows():
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.write(f"✅ **SPL {row['Nama']} & {row['Tanggal']}**")
+                with col2:
+                    file_pdf = create_pdf(df_admin.loc[idx])
+                    with open(file_pdf, "rb") as f:
+                        st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
