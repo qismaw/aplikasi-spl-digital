@@ -104,19 +104,32 @@ with tab1:
         nrp = col2.text_input("NRP / DEPT")
         tgl = col1.date_input("Tanggal")
         
-        # Pilihan Jam (Sudah Terpisah)
-        col_jam1, col_jam2 = col2.columns(2)
-        jam_mulai = col_jam1.time_input("Awal Jam", step=60)
-        jam_selesai = col_jam2.time_input("Akhir Jam", step=60)
+        # --- PERUBAHAN INPUT JAM (DROP DOWN TERPISAH) ---
+        st.markdown("**Waktu Lembur:**")
+        col_jam_awal, col_jam_akhir = st.columns(2)
         
-        # Opsi Pilihan Perusahaan Baru
-        perusahaan = st.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa", "Lainnya"])
+        # Opsi Jam (00-23) dan Menit (00-59)
+        list_jam = [f"{i:02d}" for i in range(24)]
+        list_menit = [f"{i:02d}" for i in range(60)]
         
+        with col_jam_awal:
+            c1, c2 = st.columns(2)
+            jam_a = c1.selectbox("Jam Mulai", list_jam)
+            menit_a = c2.selectbox("Menit Mulai", list_menit)
+            
+        with col_jam_akhir:
+            c3, c4 = st.columns(2)
+            jam_s = c3.selectbox("Jam Selesai", list_jam)
+            menit_s = c4.selectbox("Menit Selesai", list_menit)
+        # -----------------------------------------------
+        
+        perusahaan = st.selectbox("Nama Perusahaan", ["PT. Sapta Indrasejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa", "Lainnya"])
         alasan = st.text_area("Keterangan Lembur")
         submitted = st.form_submit_button("Kirim Pengajuan")
         
         if submitted:
-            jam_gabungan = f"{jam_mulai.strftime('%H:%M')} - {jam_selesai.strftime('%H:%M')}"
+            # Menggabungkan pilihan dropdown menjadi format teks 08:00 - 09:00
+            jam_gabungan = f"{jam_a}:{menit_a} - {jam_s}:{menit_s}"
             
             df = pd.read_csv(DB_FILE, dtype=str)
             new_id = len(df) + 1
@@ -127,14 +140,17 @@ with tab1:
             }
             df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
             df.to_csv(DB_FILE, index=False)
-            st.success("SPL terkirim! Menunggu verifikasi GL.")
+            st.success(f"SPL untuk {nama} berhasil terkirim! Waktu: {jam_gabungan}")
 
 # TAB 2: VERIFIKASI GL
 with tab2:
     df_gl = pd.read_csv(DB_FILE, dtype=str)
+    
+    # Antrean GL
+    st.subheader("Menunggu Verifikasi Anda")
     pending_gl = df_gl[df_gl["Status"] == "Pending GL"]
     if pending_gl.empty:
-        st.info("Tidak ada SPL menunggu verifikasi GL.")
+        st.info("Tidak ada SPL baru.")
     else:
         for idx, row in pending_gl.iterrows():
             if st.button(f"Approve SPL #{row['ID']} ({row['Nama']})", key=f"gl_{row['ID']}"):
@@ -142,10 +158,25 @@ with tab2:
                 df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
                 df_gl.to_csv(DB_FILE, index=False)
                 st.rerun()
+                
+    st.markdown("---")
+    
+    # Riwayat GL
+    st.subheader("Riwayat Telah Diverifikasi (Diteruskan ke Sect. Head)")
+    # Menampilkan yang sudah di-approve GL (baik yang masih pending SH maupun sudah final)
+    history_gl = df_gl[(df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved")]
+    if history_gl.empty:
+        st.write("Belum ada riwayat persetujuan.")
+    else:
+        for idx, row in history_gl.iterrows():
+            st.write(f"✅ **SPL #{row['ID']}** - {row['Nama']} (Disetujui pada: {row['Waktu_GL']})")
 
 # TAB 3: VERIFIKASI SECT HEAD & DOWNLOAD
 with tab3:
     df_sh = pd.read_csv(DB_FILE, dtype=str)
+    
+    # Antrean Section Head
+    st.subheader("Menunggu Verifikasi Akhir")
     pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
     if pending_sh.empty:
         st.info("Tidak ada SPL menunggu verifikasi Section Head.")
@@ -155,9 +186,22 @@ with tab3:
                 df_sh.loc[idx, "Status"] = "Final Approved"
                 df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
                 df_sh.to_csv(DB_FILE, index=False)
-                
-                # Buat PDF
+                st.rerun()
+
+    st.markdown("---")
+    
+    # Riwayat Section Head & Download
+    st.subheader("Arsip Dokumen Selesai (Siap Unduh)")
+    approved_sh = df_sh[df_sh["Status"] == "Final Approved"]
+    if approved_sh.empty:
+        st.write("Belum ada dokumen SPL yang selesai.")
+    else:
+        for idx, row in approved_sh.iterrows():
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(f"📄 **SPL #{row['ID']}** - {row['Nama']} (Selesai: {row['Waktu_SH']})")
+            with col2:
+                # Generate PDF di belakang layar saat halaman dimuat
                 file_pdf = create_pdf(df_sh.loc[idx])
-                st.success("SPL Berhasil di-approve Final!")
                 with open(file_pdf, "rb") as f:
-                    st.download_button("Download PDF", f, file_name=file_pdf)
+                    st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_{row['ID']}")
