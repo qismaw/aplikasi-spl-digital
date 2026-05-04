@@ -29,7 +29,7 @@ def create_pdf(row):
     # Header Logo & Nama Perusahaan
     pdf.cell(50, 20, "", border=1) 
     pdf.set_font("Arial", "", 10)
-    pdf.multi_cell(0, 10, "PT. Sapta Indrasejati\nSite Maco", border=1, align='L')
+    pdf.multi_cell(0, 10, "PT. Saptaindra Sejati\nSite Maco", border=1, align='L')
     
     # Menempelkan gambar logo (w diperbesar dari 25 menjadi 42 agar lebih besar & jelas)
     try:
@@ -106,11 +106,11 @@ with tab1:
         
         # Pilihan Jam (Sudah Terpisah)
         col_jam1, col_jam2 = col2.columns(2)
-        jam_mulai = col_jam1.time_input("Awal Jam")
-        jam_selesai = col_jam2.time_input("Akhir Jam")
+        jam_mulai = col_jam1.time_input("Awal Jam", step=60)
+        jam_selesai = col_jam2.time_input("Akhir Jam", step=60)
         
         # Opsi Pilihan Perusahaan Baru
-        perusahaan = st.selectbox("Nama Perusahaan", ["PT. Sapta Indrasejati", "PT. Masabaru", "Baramulti Group", "Lainnya"])
+        perusahaan = st.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa", "Lainnya"])
         
         alasan = st.text_area("Keterangan Lembur")
         submitted = st.form_submit_button("Kirim Pengajuan")
