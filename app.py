@@ -28,7 +28,7 @@ def create_pdf(row):
     
     # Header Logo & Nama Perusahaan (Diperbarui penulisannya)
     pdf.cell(50, 20, "", border=1) 
-    pdf.set_font("Arial", "", 10)
+    pdf.set_font("Arial", "B", 12)
     pdf.multi_cell(0, 10, "PT. Saptaindra Sejati\nSite Maco", border=1, align='L')
     
     # Logo
