@@ -38,7 +38,7 @@ def create_pdf(row):
     
     # Menempelkan gambar logo ke atas kotak kosong tadi
     try:
-        pdf.image("logo.png", x=12, y=12, w=25) # w diubah sedikit agar tidak terlalu penuh
+        pdf.image("logo.png.png", x=12, y=12, w=25) # w diubah sedikit agar tidak terlalu penuh
     except:
         pass
     
