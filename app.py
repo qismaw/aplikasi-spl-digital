@@ -7,87 +7,133 @@ import os
 # Konfigurasi Halaman
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
-# Database Sederhana (CSV) - Bisa diganti SQL jika sudah besar
-DB_FILE = "data_spl.csv"
+# Database Sederhana (CSV)
+DB_FILE = "data_spl_v2.csv"
 if not os.path.exists(DB_FILE):
-    df = pd.DataFrame(columns=["ID", "Nama", "Tanggal", "Alasan", "Status", "Waktu_Approve"])
+    df = pd.DataFrame(columns=[
+        "ID", "Nama", "NRP_Dept", "Tanggal", "Jam", "Alasan", 
+        "Status", "Waktu_GL", "Waktu_SH"
+    ])
     df.to_csv(DB_FILE, index=False)
 
-# Fungsi Generate PDF
-class SPL_PDF(FPDF):
-    def header(self):
-        self.set_font("Arial", "B", 14)
-        self.cell(0, 10, "SURAT PERINTAH LEMBUR (SPL)", ln=True, align="C")
-        self.ln(5)
-
+# Fungsi Generate PDF Tabel (Sesuai Gambar Template)
 def create_pdf(row):
-    pdf = SPL_PDF()
+    pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
     
-    # Konten SPL
-    pdf.cell(50, 10, f"No. SPL: SPL-{row['ID']}")
-    pdf.ln(10)
-    pdf.cell(50, 10, f"Nama Karyawan: {row['Nama']}")
-    pdf.ln(10)
-    pdf.cell(50, 10, f"Tanggal Tugas: {row['Tanggal']}")
-    pdf.ln(10)
-    pdf.multi_cell(0, 10, f"Alasan Lembur: {row['Alasan']}")
+    # Border Luar Dokumen
+    pdf.rect(5, 5, 200, 287)
     
-    # Bagian Tanda Tangan (Otomatis saat Approve)
+    # Header Logo & Nama Perusahaan
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(50, 20, "AlamTri geo", border=1, align='C')
+    pdf.set_font("Arial", "", 10)
+    pdf.multi_cell(0, 10, "PT. Sapta Indrasejati\nSite Maco", border=1, align='L')
+    
+    pdf.ln(10)
+    pdf.set_font("Arial", "BU", 14)
+    pdf.cell(0, 10, "SURAT PERINTAH LEMBUR", ln=True, align="C")
+    pdf.ln(5)
+    
+    # Body Tabel
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(40, 10, " NAMA", border=1)
+    pdf.cell(150, 10, f" {row['Nama']}", border=1, ln=True)
+    
+    pdf.cell(40, 10, " NRP/DEPT", border=1)
+    pdf.cell(80, 10, f" {row['NRP_Dept']}", border=1)
+    pdf.cell(70, 10, "", border=1, ln=True) # Kolom kosong samping NRP
+    
+    pdf.cell(40, 10, " TANGGAL :", border=1)
+    pdf.cell(80, 10, f" {row['Tanggal']}", border=1)
+    pdf.cell(30, 10, " JAM :", border=1)
+    pdf.cell(40, 10, f" {row['Jam']}", border=1, ln=True)
+    
+    pdf.cell(190, 10, " Keterangan Lembur :", border="LTR", ln=True)
+    pdf.multi_cell(190, 20, f" {row['Alasan']}", border="LBR")
+    
+    pdf.cell(190, 10, " PT :", border=1, ln=True)
+    
+    # Bagian Tanda Tangan
     pdf.ln(20)
-    pdf.cell(100, 10, "Pengaju,")
-    pdf.cell(0, 10, "Pengawas (Verified),", ln=True)
+    pdf.cell(95, 10, "Diketahui,", align="C")
+    pdf.cell(95, 10, "Disetujui,", ln=True, align="C")
     pdf.ln(15)
-    pdf.cell(100, 10, f"({row['Nama']})")
-    pdf.cell(0, 10, f"(Digitally Signed at {row['Waktu_Approve']})")
+    
+    # Nama Pengawas & Sect Head (Berdasarkan Waktu Approve)
+    gl_sign = f"Digitally Signed: {row['Waktu_GL']}" if str(row['Waktu_GL']) != "nan" else "........................"
+    sh_sign = f"Digitally Signed: {row['Waktu_SH']}" if str(row['Waktu_SH']) != "nan" else "........................"
+    
+    pdf.cell(95, 10, "__________________________", align="C", ln=0)
+    pdf.cell(95, 10, "__________________________", align="C", ln=1)
+    pdf.set_font("Arial", "B", 9)
+    pdf.cell(95, 5, "GL/UH", align="C")
+    pdf.cell(95, 5, "Sect. Head", align="C", ln=1)
+    pdf.set_font("Arial", "I", 7)
+    pdf.cell(95, 5, gl_sign, align="C")
+    pdf.cell(95, 5, sh_sign, align="C", ln=1)
     
     filename = f"SPL_{row['ID']}.pdf"
     pdf.output(filename)
     return filename
 
 # --- UI APP ---
-st.title("📄 Digital Overtime System (SPL)")
+st.title("📄 SPL Digital PT. SIS (Site Maco)")
 
-tab1, tab2 = st.tabs(["Input Pengajuan", "Verifikasi Pengawas"])
+tab1, tab2, tab3 = st.tabs(["Input SPL", "Verifikasi GL/UH", "Verifikasi Sect. Head"])
 
+# TAB 1: INPUT
 with tab1:
-    st.subheader("Form Input SPL")
     with st.form("form_spl"):
-        nama = st.text_input("Nama Lengkap")
-        tgl = st.date_input("Tanggal Lembur")
-        alasan = st.text_area("Detail Pekerjaan")
+        col1, col2 = st.columns(2)
+        nama = col1.text_input("Nama Karyawan")
+        nrp = col2.text_input("NRP / DEPT")
+        tgl = col1.date_input("Tanggal")
+        jam = col2.text_input("Jam (Contoh: 08:00 - 12:00)")
+        alasan = st.text_area("Keterangan Lembur")
         submitted = st.form_submit_button("Kirim Pengajuan")
         
         if submitted:
             df = pd.read_csv(DB_FILE)
             new_id = len(df) + 1
-            new_data = {"ID": new_id, "Nama": nama, "Tanggal": tgl, "Alasan": alasan, "Status": "Pending", "Waktu_Approve": "-"}
+            new_data = {
+                "ID": new_id, "Nama": nama, "NRP_Dept": nrp, "Tanggal": tgl, 
+                "Jam": jam, "Alasan": alasan, "Status": "Pending GL", 
+                "Waktu_GL": None, "Waktu_SH": None
+            }
             df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
             df.to_csv(DB_FILE, index=False)
-            st.success(f"SPL Berhasil diajukan! ID: {new_id}")
+            st.success("SPL terkirim! Menunggu verifikasi GL.")
 
+# TAB 2: VERIFIKASI GL
 with tab2:
-    st.subheader("Daftar Menunggu Persetujuan")
-    df_verif = pd.read_csv(DB_FILE)
-    pending_data = df_verif[df_verif["Status"] == "Pending"]
-    
-    if pending_data.empty:
-        st.info("Tidak ada SPL yang perlu diverifikasi.")
+    df_gl = pd.read_csv(DB_FILE)
+    pending_gl = df_gl[df_gl["Status"] == "Pending GL"]
+    if pending_gl.empty:
+        st.info("Tidak ada SPL menunggu verifikasi GL.")
     else:
-        for index, row in pending_data.iterrows():
-            with st.expander(f"SPL # {row['ID']} - {row['Nama']}"):
-                st.write(f"Detail: {row['Alasan']}")
-                # Tombol 1x Klik
-                if st.button("Verifikasi & Cetak PDF", key=f"btn_{row['ID']}"):
-                    # Update status
-                    df_verif.at[index, "Status"] = "Approved"
-                    df_verif.at[index, "Waktu_Approve"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                    df_verif.to_csv(DB_FILE, index=False)
-                    
-                    # Buat PDF
-                    file_pdf = create_pdf(df_verif.loc[index])
-                    
-                    st.success("Tanda tangan digital berhasil ditempel!")
-                    with open(file_pdf, "rb") as f:
-                        st.download_button("Download PDF Sekarang", f, file_name=file_pdf)
+        for idx, row in pending_gl.iterrows():
+            if st.button(f"Approve SPL #{row['ID']} ({row['Nama']})", key=f"gl_{row['ID']}"):
+                df_gl.at[idx, "Status"] = "Pending SH"
+                df_gl.at[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                df_gl.to_csv(DB_FILE, index=False)
+                st.rerun()
+
+# TAB 3: VERIFIKASI SECT HEAD & DOWNLOAD
+with tab3:
+    df_sh = pd.read_csv(DB_FILE)
+    pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
+    if pending_sh.empty:
+        st.info("Tidak ada SPL menunggu verifikasi Section Head.")
+    else:
+        for idx, row in pending_sh.iterrows():
+            if st.button(f"Final Approve SPL #{row['ID']} ({row['Nama']})", key=f"sh_{row['ID']}"):
+                df_sh.at[idx, "Status"] = "Final Approved"
+                df_sh.at[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                df_sh.to_csv(DB_FILE, index=False)
+                
+                # Buat PDF setelah final approve
+                file_pdf = create_pdf(df_sh.loc[idx])
+                st.success("SPL Berhasil di-approve Final!")
+                with open(file_pdf, "rb") as f:
+                    st.download_button("Download PDF", f, file_name=file_pdf)
