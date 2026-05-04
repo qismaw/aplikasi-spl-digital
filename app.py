@@ -24,7 +24,11 @@ def create_pdf(row):
     # Border Luar Dokumen
     pdf.rect(5, 5, 200, 287)
     
-# Header Logo & Nama Perusahaan
+    # ---- TAMBAHKAN BARIS INI (WAJIB SEBELUM CELL) ----
+    pdf.set_font("Arial", "B", 12) 
+    # --------------------------------------------------
+    
+    # Header Logo & Nama Perusahaan
     # Membuat kotak kosong untuk tempat logo
     pdf.cell(50, 20, "", border=1) 
     
@@ -33,11 +37,10 @@ def create_pdf(row):
     pdf.multi_cell(0, 10, "PT. Sapta Indrasejati\nSite Maco", border=1, align='L')
     
     # Menempelkan gambar logo ke atas kotak kosong tadi
-    # Format: pdf.image('nama_file.png', posisi_X, posisi_Y, lebar_gambar)
     try:
-        pdf.image("logo.png", x=12, y=12, w=45) 
+        pdf.image("logo.png", x=12, y=12, w=25) # w diubah sedikit agar tidak terlalu penuh
     except:
-        pass # Jaga-jaga agar aplikasi tidak error jika file logo.png belum terupload
+        pass
     
     pdf.ln(10)
     pdf.set_font("Arial", "BU", 14)
