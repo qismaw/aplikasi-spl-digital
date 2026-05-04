@@ -42,6 +42,7 @@ def create_pdf(row):
     pdf.set_font("Arial", "", 10)
     pdf.multi_cell(0, 10, "PT. Saptaindra Sejati\nSite Maco", border=1, align='L')
     
+    # Logo Perusahaan Kiri Atas
     try:
         pdf.image("logo.png.png", x=9, y=11, w=42) 
     except:
@@ -52,6 +53,7 @@ def create_pdf(row):
     pdf.cell(0, 10, "SURAT PERINTAH LEMBUR", ln=True, align="C")
     pdf.ln(5)
     
+    # Body Tabel
     pdf.set_font("Arial", "", 10)
     pdf.cell(40, 10, " NAMA", border=1)
     pdf.cell(150, 10, f" {row['Nama']}", border=1, ln=True)
@@ -76,7 +78,7 @@ def create_pdf(row):
     
     y_pos = pdf.get_y()
     
-    # Cap Digital (Watermark)
+    # Cap Digital (Watermark) Logo AlamTri
     try:
         if str(row['Waktu_GL']) != "nan":
             pdf.image("logo.png.png", x=35, y=y_pos + 2, w=35) 
@@ -85,15 +87,21 @@ def create_pdf(row):
     except:
         pass
         
-    pdf.ln(5) 
+    pdf.ln(18) # Loncatan agar teks di bawah logo
+    
     gl_sign = f"Digitally Signed: {row['Waktu_GL']}" if str(row['Waktu_GL']) != "nan" else ""
     sh_sign = f"Digitally Signed: {row['Waktu_SH']}" if str(row['Waktu_SH']) != "nan" else ""
     
+    # Warna Biru untuk Teks Digital Sign
+    pdf.set_text_color(0, 0, 255)
     pdf.set_font("Arial", "I", 8)
     pdf.cell(95, 5, gl_sign, align="C")
     pdf.cell(95, 5, sh_sign, align="C", ln=True)
     
-    pdf.ln(12) 
+    # Kembalikan ke warna Hitam untuk nama
+    pdf.set_text_color(0, 0, 0)
+    
+    pdf.ln(8) 
     nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
     nama_sh = "Haris Abi Wibowo"
     
@@ -119,7 +127,6 @@ if not st.session_state.logged_in:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.subheader("Silakan Login")
-        # Tambahan Akses Admin
         role = st.selectbox("Masuk Sebagai:", [
             "Pilih Akses...", "Karyawan (Form Input)", "GL/UH (Verifikasi 1)", 
             "Section Head (Verifikasi 2)", "Admin (Monitoring & Rekapan)"
@@ -154,11 +161,10 @@ if not st.session_state.logged_in:
                 elif password != "":
                     st.error("Password Salah!")
                     
-        # Logika Login Admin
         elif role == "Admin (Monitoring & Rekapan)":
             password = st.text_input("Password Admin", type="password")
             if st.button("Login Admin"):
-                if password == "admin123": # <-- Ubah password Admin di sini
+                if password == "admin123":
                     st.session_state.logged_in = True
                     st.session_state.role = "Admin"
                     st.session_state.username = "Administrator"
@@ -307,15 +313,26 @@ else:
     elif st.session_state.role == "Admin":
         df_admin = pd.read_csv(DB_FILE, dtype=str)
         
-        # 1. Download Tabel CSV/Excel
         st.subheader("📊 Tabel Database Seluruh SPL")
-        with open(DB_FILE, "rb") as f:
-            st.download_button("📥 Download Database Format Excel (CSV)", f, file_name="Database_SPL_Maco.csv", mime="text/csv")
-        st.dataframe(df_admin)
+        
+        df_display = df_admin.copy()
+        if "ID" in df_display.columns:
+            df_display = df_display.drop(columns=["ID"])
+            
+        df_display.insert(0, "No.", range(1, len(df_display) + 1))
+        
+        csv_data = df_display.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download Rekapan Format Excel (CSV)", 
+            data=csv_data, 
+            file_name="Rekapan_SPL_Maco.csv", 
+            mime="text/csv"
+        )
+        
+        st.dataframe(df_display, hide_index=True)
         
         st.markdown("---")
         
-        # 2. Tracking Pendingan
         st.subheader("⏳ Tracking Dokumen Belum Selesai (Pending)")
         pending_admin = df_admin[df_admin["Status"] != "Final Approved"]
         if pending_admin.empty:
@@ -324,19 +341,13 @@ else:
             for idx, row in pending_admin.iterrows():
                 if row["Status"] == "Pending GL":
                     posisi = f"Menunggu Persetujuan GL/UH: {row['Pengawas_Tujuan']}"
-                    warna_alert = "warning"
-                else:
-                    posisi = "Menunggu Persetujuan Akhir Section Head"
-                    warna_alert = "info"
-                
-                if warna_alert == "warning":
                     st.warning(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
                 else:
+                    posisi = "Menunggu Persetujuan Akhir Section Head"
                     st.info(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
                     
         st.markdown("---")
         
-        # 3. Download PDF
         st.subheader("🗂️ Arsip Lengkap Dokumen PDF")
         approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
         if approved_admin.empty:
