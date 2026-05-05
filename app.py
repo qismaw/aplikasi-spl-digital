@@ -6,14 +6,13 @@ import os
 import time
 import base64
 import json
-import io  # <-- Modul baru untuk memproses file Excel di dalam memori
+import io
 
 # Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
 <style>
-/* Desain Tombol Approve (Hijau) */
 div[data-testid="stButton"] button:has(p:contains("Approve")) {
     background-color: #00c853 !important;
     color: white !important;
@@ -21,7 +20,6 @@ div[data-testid="stButton"] button:has(p:contains("Approve")) {
     font-weight: bold !important;
 }
 
-/* Desain Tombol Tolak (Merah) */
 div[data-testid="stButton"] button:has(p:contains("Tolak")) {
     background-color: #ff1744 !important;
     color: white !important;
@@ -40,29 +38,65 @@ div[data-testid="stPopoverBody"] {
 </style>
 """, unsafe_allow_html=True)
 
-# Setup Session State untuk Login
+# ==========================================
+# SETUP SESSION STATE & ROUTING
+# ==========================================
+# app_mode mengatur halaman mana yang sedang aktif: "landing", "login", atau "main"
+if "app_mode" not in st.session_state:
+    st.session_state.app_mode = "landing"
+
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.role = ""
     st.session_state.username = "" 
 
 # ==========================================
-# KONFIGURASI AKUN PENGGUNA
+# DATABASE PENGGUNA (FITUR KEAMANAN)
 # ==========================================
-AKUN_GL = {
-    "Bapak Andi (GL 1)": "andi123",
-    "Bapak Budi (GL 2)": "budi123",
-    "Bapak Citra (GL 3)": "citra123"
-}
+USER_DB_FILE = "users.json"
 
-# Database Sederhana (CSV) - V8
+def load_users():
+    if not os.path.exists(USER_DB_FILE):
+        default_users = {
+            "Bapak Andi (GL 1)": {"password": "andi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Bapak Budi (GL 2)": {"password": "budi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Bapak Citra (GL 3)": {"password": "citra123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Sect. Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
+            "Administrator": {"password": "admin123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
+        }
+        with open(USER_DB_FILE, "w") as f:
+            json.dump(default_users, f)
+        return default_users
+    else:
+        with open(USER_DB_FILE, "r") as f:
+            return json.load(f)
+
+def save_users(users_data):
+    with open(USER_DB_FILE, "w") as f:
+        json.dump(users_data, f)
+
+users_db = load_users()
+LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
+
+# ==========================================
+# DATABASE SPL & AUTO-PATCHING
+# ==========================================
 DB_FILE = "data_spl_v8.csv"
-if not os.path.exists(DB_FILE):
-    df = pd.DataFrame(columns=[
-        "ID", "Nama", "NRP", "Section", "Shift", "Tanggal", "Jam", "Perusahaan", "Alasan", 
-        "Pengawas_Tujuan", "Status", "Waktu_GL", "Nama_GL", "Waktu_SH", "Nama_SH"
-    ])
-    df.to_csv(DB_FILE, index=False)
+
+def get_db():
+    if not os.path.exists(DB_FILE):
+        df = pd.DataFrame(columns=[
+            "ID", "Nama", "NRP", "Section", "Shift", "Tanggal", "Jam", "Perusahaan", "Alasan", 
+            "Pengawas_Tujuan", "Status", "Waktu_GL", "Nama_GL", "Waktu_SH", "Nama_SH", "Alasan_Tolak"
+        ])
+        df.to_csv(DB_FILE, index=False)
+        return df
+    else:
+        df = pd.read_csv(DB_FILE, dtype=str)
+        if "Alasan_Tolak" not in df.columns:
+            df["Alasan_Tolak"] = ""
+            df.to_csv(DB_FILE, index=False)
+        return df
 
 # File Konfigurasi Pendelegasian
 CONFIG_FILE = "delegasi.json"
@@ -208,75 +242,163 @@ def display_html_preview(row):
     """
     st.markdown(html_content, unsafe_allow_html=True)
 
+# Fungsi Validasi Login (3x Gagal Blokir)
+def proses_login(username_key, password_input):
+    users_data = load_users()
+    if username_key not in users_data:
+        st.error("Pengguna tidak ditemukan!")
+        return False
+        
+    user_info = users_data[username_key]
+    
+    if user_info["blocked"]:
+        st.error(f"🚨 Akun Anda ({username_key}) telah DIBLOKIR karena 3x salah sandi. Silakan hubungi Administrator!")
+        return False
+        
+    if password_input == user_info["password"]:
+        user_info["failed_attempts"] = 0
+        save_users(users_data)
+        return True
+    elif password_input != "":
+        user_info["failed_attempts"] += 1
+        sisa = 3 - user_info["failed_attempts"]
+        
+        if user_info["failed_attempts"] >= 3:
+            user_info["blocked"] = True
+            st.error(f"🚨 PERINGATAN: Sandi salah 3x. Akun {username_key} kini DIBLOKIR!")
+        else:
+            st.error(f"❌ Sandi Salah! Sisa percobaan Anda: {sisa} kali lagi.")
+        
+        save_users(users_data)
+        return False
+    return False
+
 # ==========================================
-# HALAMAN LOGIN
+# 1. HALAMAN UTAMA (LANDING PAGE)
 # ==========================================
-if not st.session_state.logged_in:
-    st.markdown("<h1 style='text-align: center;'>🔐 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
+if st.session_state.app_mode == "landing":
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>🏢 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: gray; margin-bottom: 50px;'>Silakan pilih gerbang akses Anda di bawah ini:</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns([1, 4, 4, 1])
+    
+    with col2:
+        st.success("📝 **PORTAL KARYAWAN**")
+        st.write("Masuk ke sini untuk mengisi formulir lembur. Tanpa perlu *login* atau kata sandi.")
+        st.write("")
+        if st.button("Masuk Form Pengajuan", use_container_width=True):
+            st.session_state.role = "Karyawan"
+            st.session_state.logged_in = True
+            st.session_state.app_mode = "main"
+            st.rerun()
+            
+    with col3:
+        st.info("🔐 **PORTAL MANAJEMEN**")
+        st.write("Khusus untuk GL/UH, Section Head, dan Administrator untuk melakukan verifikasi.")
+        st.write("")
+        if st.button("Masuk Halaman Login", use_container_width=True):
+            st.session_state.app_mode = "login"
+            st.rerun()
+
+# ==========================================
+# 2. HALAMAN LOGIN MANAJEMEN
+# ==========================================
+elif st.session_state.app_mode == "login":
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🔐 Login Manajemen</h2>", unsafe_allow_html=True)
     st.write("---")
     
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.subheader("Silakan Login")
-        role = st.selectbox("Masuk Sebagai:", [
-            "Pilih Akses...", "Karyawan (Form Input)", "GL/UH (Verifikasi 1)", 
-            "Section Head (Verifikasi 2)", "Admin (Monitoring & Rekapan)"
-        ])
+    col_back, _ = st.columns([2, 8])
+    with col_back:
+        if st.button("⬅️ Kembali ke Menu Utama"):
+            st.session_state.app_mode = "landing"
+            st.rerun()
+            
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+    with col_l2:
+        # Perhatikan: Karyawan sudah dihapus dari pilihan login ini!
+        role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
         
-        if role == "Karyawan (Form Input)":
-            if st.button("Masuk Form SPL"):
-                st.session_state.logged_in = True
-                st.session_state.role = "Karyawan"
-                st.rerun()
-                
-        elif role == "GL/UH (Verifikasi 1)":
-            nama_gl = st.selectbox("Pilih Nama Anda", list(AKUN_GL.keys()))
+        if role == "GL/UH":
+            nama_gl = st.selectbox("Pilih Nama Anda", LIST_GL)
             password = st.text_input("Password", type="password")
-            if st.button("Login GL"):
-                if password == AKUN_GL[nama_gl]: 
+            if st.button("Login GL", use_container_width=True):
+                if proses_login(nama_gl, password):
                     st.session_state.logged_in = True
                     st.session_state.role = "GL/UH"
                     st.session_state.username = nama_gl
+                    st.session_state.app_mode = "main"
                     st.rerun()
-                elif password != "":
-                    st.error("Password Salah!")
-                    
-        elif role == "Section Head (Verifikasi 2)":
+        
+        elif role == "Section Head":
             password = st.text_input("Password Section Head", type="password")
-            if st.button("Login Sect Head"):
-                if password == "sh123": 
+            if st.button("Login Sect Head", use_container_width=True):
+                if proses_login("Sect. Head", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Section Head"
                     st.session_state.username = "Sect. Head"
+                    st.session_state.app_mode = "main"
                     st.rerun()
-                elif password != "":
-                    st.error("Password Salah!")
                     
-        elif role == "Admin (Monitoring & Rekapan)":
+        elif role == "Admin":
             password = st.text_input("Password Admin", type="password")
-            if st.button("Login Admin"):
-                if password == "admin123":
+            if st.button("Login Admin", use_container_width=True):
+                if proses_login("Administrator", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Admin"
                     st.session_state.username = "Administrator"
+                    st.session_state.app_mode = "main"
                     st.rerun()
-                elif password != "":
-                    st.error("Password Salah!")
 
 # ==========================================
-# HALAMAN UTAMA (SETELAH LOGIN)
+# 3. HALAMAN DASHBOARD UTAMA (SETELAH MASUK)
 # ==========================================
-else:
-    col_title, col_logout = st.columns([8, 1])
+elif st.session_state.app_mode == "main" and st.session_state.logged_in:
+    
+    # --- FITUR SIDEBAR GANTI PASSWORD MANDIRI ---
+    if st.session_state.role != "Karyawan":
+        with st.sidebar:
+            st.header("🔑 Ganti Password")
+            st.write("Ganti sandi Anda demi keamanan.")
+            with st.form("form_ganti_pass", clear_on_submit=True):
+                pass_lama = st.text_input("Password Lama", type="password")
+                pass_baru = st.text_input("Password Baru", type="password")
+                pass_konf = st.text_input("Konfirmasi Password Baru", type="password")
+                
+                if st.form_submit_button("Simpan Password"):
+                    db_pass = load_users()
+                    user_data = db_pass[st.session_state.username]
+                    
+                    if pass_lama != user_data["password"]:
+                        st.error("Password lama salah!")
+                    elif pass_baru != pass_konf:
+                        st.error("Password baru tidak cocok!")
+                    elif len(pass_baru) < 4:
+                        st.error("Password terlalu pendek (Min 4 karakter)!")
+                    else:
+                        user_data["password"] = pass_baru
+                        save_users(db_pass)
+                        st.success("✅ Password berhasil diperbarui!")
+
+    col_title, col_logout = st.columns([8, 2])
     with col_title:
-        nama_user = st.session_state.username if st.session_state.username else "Karyawan"
-        st.title(f"📄 Dashboard {st.session_state.role} - {nama_user}")
+        if st.session_state.role == "Karyawan":
+            st.title("📄 Pengisian Form SPL")
+        else:
+            st.title(f"📄 Dashboard {st.session_state.role} - {st.session_state.username}")
+            
     with col_logout:
         st.write("") 
-        if st.button("Logout"):
+        # Teks tombol disesuaikan. Jika karyawan, dia hanya 'Keluar' ke beranda.
+        btn_text = "🚪 Keluar / Beranda" if st.session_state.role == "Karyawan" else "🚪 Logout Akun"
+        if st.button(btn_text, use_container_width=True):
             st.session_state.logged_in = False
             st.session_state.role = ""
             st.session_state.username = ""
+            st.session_state.app_mode = "landing"
             st.rerun()
     
     st.write("---")
@@ -287,8 +409,6 @@ else:
     # TAMPILAN KHUSUS KARYAWAN
     # ------------------------------------------
     if st.session_state.role == "Karyawan":
-        st.subheader("Formulir Pengajuan Lembur")
-        
         with st.form("form_spl", clear_on_submit=True):
             col1, col2 = st.columns(2)
             nama = col1.text_input("Nama Karyawan *")
@@ -304,7 +424,7 @@ else:
             tgl = col_tgl.date_input("Tanggal", value=datetime.now().date(), disabled=True)
             shift = col_shift.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
             
-            pengawas_tujuan = st.selectbox("Pengawas (GL) Yang Bertugas", list(AKUN_GL.keys()))
+            pengawas_tujuan = st.selectbox("Pengawas (GL) Yang Bertugas", LIST_GL)
             
             st.markdown("**Waktu Lembur:**")
             col_jam_awal, col_jam_akhir = st.columns(2)
@@ -325,7 +445,7 @@ else:
             alasan = st.text_area("Keterangan Lembur *")
             st.markdown("*Keterangan: Tanda (*) wajib diisi*")
             
-            submitted = st.form_submit_button("Ajukan Lembur")
+            submitted = st.form_submit_button("Kirim Pengajuan Lembur")
             
             if submitted:
                 waktu_awal_menit = (int(jam_a) * 60) + int(menit_a)
@@ -337,14 +457,14 @@ else:
                     st.error("⚠️ GAGAL: Jam Akhir harus lebih besar dari Jam Awal!")
                 else:
                     jam_gabungan = f"{jam_a}:{menit_a} - {jam_s}:{menit_s}"
-                    df = pd.read_csv(DB_FILE, dtype=str)
+                    df = get_db()
                     
                     new_id = str(int(time.time()))
                     new_data = {
                         "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
                         "Jam": jam_gabungan, "Perusahaan": perusahaan, "Alasan": alasan, 
                         "Pengawas_Tujuan": pengawas_tujuan, 
-                        "Status": "Pending GL", "Waktu_GL": None, "Nama_GL": None, "Waktu_SH": None, "Nama_SH": None
+                        "Status": "Pending GL", "Waktu_GL": None, "Nama_GL": None, "Waktu_SH": None, "Nama_SH": None, "Alasan_Tolak": ""
                     }
                     df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
                     df.to_csv(DB_FILE, index=False)
@@ -357,8 +477,9 @@ else:
     # TAMPILAN KHUSUS GL / UH
     # ------------------------------------------
     elif st.session_state.role == "GL/UH":
-        df_gl = pd.read_csv(DB_FILE, dtype=str)
+        df_gl = get_db()
         
+        # 1. TUGAS REGULER SEBAGAI GL
         st.subheader("Menunggu Verifikasi Anda (Sebagai GL/UH)")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
@@ -405,17 +526,28 @@ else:
                         df_gl.to_csv(DB_FILE, index=False)
                         st.rerun()
                 with cols[9]:
-                    if st.button("Tolak", key=f"gl_del_{row['ID']}"):
-                        df_gl = df_gl.drop(idx)
-                        df_gl.to_csv(DB_FILE, index=False)
-                        st.rerun()
+                    with st.popover("Tolak"):
+                        alasan_tolak = st.text_area("Masukkan Alasan Penolakan:", key=f"txt_tolak_gl_{row['ID']}")
+                        if st.button("Konfirmasi Tolak", key=f"gl_del_{row['ID']}"):
+                            if not alasan_tolak.strip():
+                                st.error("Alasan penolakan tidak boleh kosong!")
+                            else:
+                                df_gl.loc[idx, "Status"] = "Ditolak"
+                                df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                                df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
+                                df_gl.loc[idx, "Alasan_Tolak"] = alasan_tolak
+                                df_gl.to_csv(DB_FILE, index=False)
+                                st.rerun()
                 st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
                     
         st.subheader("Riwayat Pekerjaan (Sebagai GL)")
-        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved")) & (df_gl["Nama_GL"] == st.session_state.username)]
+        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved") | (df_gl["Status"] == "Ditolak")) & (df_gl["Nama_GL"] == st.session_state.username)]
         if not history_gl.empty:
             for idx, row in history_gl.iterrows():
-                st.write(f"✅ **{row['Nama']}** - {row['Tanggal']} (Status: {row['Status']})")
+                if row['Status'] == 'Ditolak':
+                    st.error(f"❌ **{row['Nama']}** - {row['Tanggal']} (Ditolak pada: {row['Waktu_GL']}) | **Alasan:** {row.get('Alasan_Tolak', '')}")
+                else:
+                    st.write(f"✅ **{row['Nama']}** - {row['Tanggal']} (Status saat ini: {row['Status']})")
 
         # 2. TUGAS DELEGASI JIKA DITUNJUK MENJADI PJS SH
         if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
@@ -467,10 +599,18 @@ else:
                             df_gl.to_csv(DB_FILE, index=False)
                             st.rerun()
                     with cols[9]:
-                        if st.button("Tolak", key=f"pjs_del_{row['ID']}"):
-                            df_gl = df_gl.drop(idx)
-                            df_gl.to_csv(DB_FILE, index=False)
-                            st.rerun()
+                        with st.popover("Tolak"):
+                            alasan_pjs = st.text_area("Masukkan Alasan Penolakan:", key=f"txt_tolak_pjs_{row['ID']}")
+                            if st.button("Konfirmasi Tolak", key=f"pjs_del_{row['ID']}"):
+                                if not alasan_pjs.strip():
+                                    st.error("Alasan penolakan tidak boleh kosong!")
+                                else:
+                                    df_gl.loc[idx, "Status"] = "Ditolak"
+                                    df_gl.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                                    df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS Section Head)"
+                                    df_gl.loc[idx, "Alasan_Tolak"] = alasan_pjs
+                                    df_gl.to_csv(DB_FILE, index=False)
+                                    st.rerun()
                     st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
             st.subheader("Arsip Dokumen Selesai (Sebagai Pjs. Section Head)")
@@ -496,10 +636,10 @@ else:
             col_d1, col_d2 = st.columns([2, 2])
             with col_d1:
                 idx_default = 0
-                if config_del["pjs_nama"] in list(AKUN_GL.keys()):
-                    idx_default = list(AKUN_GL.keys()).index(config_del["pjs_nama"])
+                if config_del["pjs_nama"] in LIST_GL:
+                    idx_default = LIST_GL.index(config_del["pjs_nama"])
                 
-                pjs_pilihan = st.selectbox("Pilih Pengawas Sebagai Pejabat Sementara (Pjs):", list(AKUN_GL.keys()), index=idx_default)
+                pjs_pilihan = st.selectbox("Pilih Pengawas Sebagai Pejabat Sementara (Pjs):", LIST_GL, index=idx_default)
             
             with col_d2:
                 st.write("") 
@@ -522,7 +662,7 @@ else:
         
         st.markdown("<hr>", unsafe_allow_html=True)
 
-        df_sh = pd.read_csv(DB_FILE, dtype=str)
+        df_sh = get_db()
         st.subheader("Verifikasi Akhir (Final Approve)")
         
         pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
@@ -572,10 +712,18 @@ else:
                         st.rerun()
                         
                 with cols[9]:
-                    if st.button("Tolak", key=f"sh_del_{row['ID']}"):
-                        df_sh = df_sh.drop(idx)
-                        df_sh.to_csv(DB_FILE, index=False)
-                        st.rerun()
+                    with st.popover("Tolak"):
+                        alasan_sh = st.text_area("Masukkan Alasan Penolakan:", key=f"txt_tolak_sh_{row['ID']}")
+                        if st.button("Konfirmasi Tolak", key=f"sh_del_{row['ID']}"):
+                            if not alasan_sh.strip():
+                                st.error("Alasan penolakan tidak boleh kosong!")
+                            else:
+                                df_sh.loc[idx, "Status"] = "Ditolak"
+                                df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                                df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
+                                df_sh.loc[idx, "Alasan_Tolak"] = alasan_sh
+                                df_sh.to_csv(DB_FILE, index=False)
+                                st.rerun()
                 
                 st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
@@ -594,11 +742,19 @@ else:
                     with open(file_pdf, "rb") as f:
                         st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_sh_fin_{row['ID']}")
 
+        st.subheader("❌ Arsip Dokumen Ditolak")
+        rejected_sh = df_sh[(df_sh["Status"] == "Ditolak") & (df_sh["Nama_SH"] == "Haris Abi Wibowo")]
+        if rejected_sh.empty:
+            st.write("Belum ada riwayat penolakan dari Anda.")
+        else:
+            for idx, row in rejected_sh.iterrows():
+                st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** (Anda tolak pada: {row['Waktu_SH']}) | **Alasan:** {row.get('Alasan_Tolak', '')}")
+
     # ------------------------------------------
     # TAMPILAN KHUSUS ADMIN (MONITORING & EXCEL)
     # ------------------------------------------
     elif st.session_state.role == "Admin":
-        df_admin_raw = pd.read_csv(DB_FILE, dtype=str)
+        df_admin_raw = get_db()
         
         st.subheader("🎛️ Filter Data SPL")
         col_f1, col_f2 = st.columns([1, 2])
@@ -636,7 +792,6 @@ else:
             if "ID" in df_display.columns:
                 df_display = df_display.drop(columns=["ID"])
             
-            # --- LOGIKA MEMISAHKAN JAM & MENGHITUNG TOTAL ---
             df_display['Jam Awal'] = df_display['Jam'].apply(lambda x: x.split(' - ')[0] if pd.notna(x) and ' - ' in str(x) else "")
             df_display['Jam Akhir'] = df_display['Jam'].apply(lambda x: x.split(' - ')[1] if pd.notna(x) and ' - ' in str(x) else "")
             
@@ -647,25 +802,22 @@ else:
                     wk = datetime.strptime(akhir, "%H:%M")
                     selisih = (wk - wa).total_seconds() / 3600
                     if selisih < 0:
-                        selisih += 24 # Lintas hari
-                    return round(selisih, 2) # Mengembalikan angka desimal misal 2.5 Jam
+                        selisih += 24
+                    return round(selisih, 2)
                 except:
                     return 0
 
             df_display['Total Lembur (Jam)'] = df_display['Jam'].apply(hitung_durasi)
             df_display = df_display.drop(columns=['Jam']) 
             
-            # Merapikan Urutan Kolom
             df_display.insert(0, "No.", range(1, len(df_display) + 1))
-            cols_order = ['No.', 'Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam Awal', 'Jam Akhir', 'Total Lembur (Jam)', 'Perusahaan', 'Alasan', 'Status', 'Pengawas_Tujuan', 'Waktu_GL', 'Nama_GL', 'Waktu_SH', 'Nama_SH']
+            cols_order = ['No.', 'Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam Awal', 'Jam Akhir', 'Total Lembur (Jam)', 'Perusahaan', 'Alasan', 'Status', 'Pengawas_Tujuan', 'Waktu_GL', 'Nama_GL', 'Waktu_SH', 'Nama_SH', 'Alasan_Tolak']
             cols_order = [c for c in cols_order if c in df_display.columns]
             df_display = df_display[cols_order]
             
-            # --- PROSES EXPORT KE EXCEL MURNI ---
             buffer = io.BytesIO()
             with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
                 df_display.to_excel(writer, index=False, sheet_name='Rekap_SPL')
-            
             excel_data = buffer.getvalue()
             
             st.download_button(
@@ -675,15 +827,14 @@ else:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
             
-            # Menampilkan preview tabel di web
             st.dataframe(df_display, hide_index=True)
             
             st.markdown("---")
             
             st.subheader("⏳ Tracking Dokumen Belum Selesai (Pending)")
-            pending_admin = df_admin[df_admin["Status"] != "Final Approved"]
+            pending_admin = df_admin[(df_admin["Status"] != "Final Approved") & (df_admin["Status"] != "Ditolak")]
             if pending_admin.empty:
-                st.success("TIDAK ADA ANTRIAN pada filter ini. Seluruh pengajuan lembur sudah disetujui.")
+                st.success("TIDAK ADA ANTRIAN pada filter ini.")
             else:
                 for idx, row in pending_admin.iterrows():
                     if row["Status"] == "Pending GL":
@@ -692,10 +843,22 @@ else:
                     else:
                         posisi = "Menunggu Persetujuan Akhir Section Head"
                         st.info(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
-                        
+            
+            st.markdown("---")
+
+            st.subheader("❌ Riwayat Pengajuan Ditolak")
+            rejected_admin = df_admin[df_admin["Status"] == "Ditolak"]
+            if rejected_admin.empty:
+                st.write("Tidak ada pengajuan yang ditolak pada filter ini.")
+            else:
+                for idx, row in rejected_admin.iterrows():
+                    penolak = row['Nama_SH'] if pd.notna(row['Nama_SH']) and str(row['Nama_SH']).strip() and str(row['Nama_SH']) != "nan" else row['Nama_GL']
+                    alasan = row.get('Alasan_Tolak', 'Tidak ada alasan.')
+                    st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** ➔ Ditolak oleh: **{penolak}** | **Alasan:** {alasan}")
+
             st.markdown("---")
             
-            st.subheader("🗂️ Arsip Lengkap Dokumen PDF")
+            st.subheader("🗂️ Arsip Lengkap Dokumen PDF (Disetujui)")
             approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
             if approved_admin.empty:
                 st.write("Belum ada dokumen PDF yang di-generate pada filter ini.")
@@ -708,3 +871,38 @@ else:
                         file_pdf = create_pdf(row)
                         with open(file_pdf, "rb") as f:
                             st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
+
+        # --- FITUR BUKA BLOKIR & RESET PASSWORD ---
+        st.markdown("---")
+        st.subheader("🔐 Manajemen Keamanan Akun")
+        db_admin_users = load_users()
+        
+        col_ua1, col_ua2 = st.columns(2)
+        with col_ua1:
+            st.markdown("**Akun Terblokir (Gagal Login 3x):**")
+            blocked_users = [k for k, v in db_admin_users.items() if v["blocked"]]
+            
+            if not blocked_users:
+                st.success("Aman! Tidak ada akun yang terblokir saat ini.")
+            else:
+                for bu in blocked_users:
+                    col_b1, col_b2 = st.columns([3, 2])
+                    col_b1.error(f"🔒 {bu}")
+                    if col_b2.button("Buka Blokir", key=f"unblock_{bu}"):
+                        db_admin_users[bu]["blocked"] = False
+                        db_admin_users[bu]["failed_attempts"] = 0
+                        db_admin_users[bu]["password"] = "default123"
+                        save_users(db_admin_users)
+                        st.success(f"Berhasil! Akun {bu} dibuka. Sandi direset ke: default123")
+                        time.sleep(2)
+                        st.rerun()
+                        
+        with col_ua2:
+            st.markdown("**Reset Sandi Pengguna ke Default:**")
+            user_to_reset = st.selectbox("Pilih Pengguna:", list(db_admin_users.keys()))
+            if st.button("Reset Sandi ke 'default123'"):
+                db_admin_users[user_to_reset]["password"] = "default123"
+                db_admin_users[user_to_reset]["failed_attempts"] = 0
+                db_admin_users[user_to_reset]["blocked"] = False
+                save_users(db_admin_users)
+                st.success(f"✅ Sandi untuk {user_to_reset} berhasil diubah menjadi: default123")
