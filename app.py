@@ -4,8 +4,9 @@ import pandas as pd
 from datetime import datetime
 import os
 import time
+import base64 # <-- Modul baru untuk membaca PDF langsung di browser
 
-# Konfigurasi Halaman & CSS Kustom untuk Warna Tombol
+# Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
@@ -29,6 +30,13 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) {
 /* Menyesuaikan tombol popover mata agar rapi */
 div[data-testid="stPopover"] button {
     padding: 0.2rem 0.5rem !important;
+}
+
+/* Membuat kotak Popover lebih lebar agar PDF mudah dibaca */
+div[data-testid="stPopoverBody"] {
+    width: 700px !important;
+    max-width: 90vw !important;
+    height: 600px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -135,6 +143,13 @@ def create_pdf(row):
     filename = f"SPL_{row['ID']}.pdf"
     pdf.output(filename)
     return filename
+
+# Fungsi khusus untuk menampilkan PDF di browser
+def display_pdf(file_path):
+    with open(file_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="550px" type="application/pdf" style="border: none;"></iframe>'
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 # ==========================================
 # HALAMAN LOGIN
@@ -318,12 +333,10 @@ else:
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
+                    # Tombol 👁️ Langsung Buka PDF Inline!
                     with st.popover("👁️"):
-                        st.write(f"**Perusahaan:** {row['Perusahaan']}")
-                        st.write(f"**Alasan:** {row['Alasan']}")
                         file_pdf = create_pdf(row)
-                        with open(file_pdf, "rb") as f:
-                            st.download_button("📄 Draft PDF", f, file_name=f"Draft_{file_pdf}", key=f"dl_gl_{row['ID']}")
+                        display_pdf(file_pdf)
                             
                 with cols[8]:
                     if st.button("Approve", key=f"app_{row['ID']}"):
@@ -394,13 +407,10 @@ else:
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
+                    # Tombol 👁️ Langsung Buka PDF Inline!
                     with st.popover("👁️"):
-                        st.write(f"**Di-Approve Oleh GL:** {row['Nama_GL']}")
-                        st.write(f"**Perusahaan:** {row['Perusahaan']}")
-                        st.write(f"**Keterangan:** {row['Alasan']}")
                         file_pdf = create_pdf(row)
-                        with open(file_pdf, "rb") as f:
-                            st.download_button("📄 Draft PDF", f, file_name=f"Draft_{file_pdf}", key=f"dl_sh_{row['ID']}")
+                        display_pdf(file_pdf)
                             
                 with cols[8]:
                     if st.button("Approve", key=f"sh_app_{row['ID']}"):
