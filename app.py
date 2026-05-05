@@ -139,7 +139,6 @@ def create_pdf(row):
     pdf.set_text_color(0, 0, 0)
     pdf.ln(8) 
     
-    # --- LOGIKA PENENTUAN NAMA DAN JABATAN UNTUK TANDA TANGAN ---
     nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
     
     nama_sh_raw = str(row['Nama_SH']) if 'Nama_SH' in row and pd.notna(row['Nama_SH']) and str(row['Nama_SH']) != "nan" else "Haris Abi Wibowo"
@@ -148,24 +147,21 @@ def create_pdf(row):
     if "(PJS Section Head)" in nama_sh_raw:
         nama_sh_final = nama_sh_raw.replace(" (PJS Section Head)", "").strip()
         jabatan_sh = "PJS Section Head"
-    elif "(Pjs. Sect Head)" in nama_sh_raw: # Kompatibilitas untuk data lama jika ada
+    elif "(Pjs. Sect Head)" in nama_sh_raw: 
         nama_sh_final = nama_sh_raw.replace(" (Pjs. Sect Head)", "").strip()
         jabatan_sh = "PJS Section Head"
     else:
         nama_sh_final = nama_sh_raw
         jabatan_sh = "Section Head"
     
-    # 1. Garis Bawah
     pdf.set_font("Arial", "", 10)
     pdf.cell(95, 5, "__________________________", align="C", ln=0)
     pdf.cell(95, 5, "__________________________", align="C", ln=1)
     
-    # 2. Nama Terang
     pdf.set_font("Arial", "B", 9)
     pdf.cell(95, 5, nama_pengawas, align="C") 
     pdf.cell(95, 5, nama_sh_final, align="C", ln=1)
     
-    # 3. Posisi / Jabatan di bawah nama
     pdf.set_font("Arial", "", 8)
     pdf.cell(95, 4, "GL / UH", align="C") 
     pdf.cell(95, 4, jabatan_sh, align="C", ln=1)
@@ -416,7 +412,13 @@ else:
                         df_gl.to_csv(DB_FILE, index=False)
                         st.rerun()
                 st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
-                
+                    
+        st.subheader("Riwayat Pekerjaan (Sebagai GL)")
+        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved")) & (df_gl["Nama_GL"] == st.session_state.username)]
+        if not history_gl.empty:
+            for idx, row in history_gl.iterrows():
+                st.write(f"✅ **{row['Nama']}** - {row['Tanggal']} (Status: {row['Status']})")
+
         # 2. TUGAS DELEGASI JIKA DITUNJUK MENJADI PJS SH
         if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
             st.markdown("<br><br>", unsafe_allow_html=True)
@@ -463,10 +465,7 @@ else:
                         if st.button("Approve", key=f"pjs_app_{row['ID']}"):
                             df_gl.loc[idx, "Status"] = "Final Approved"
                             df_gl.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                            
-                            # --- PENANDA KHUSUS PJS ---
                             df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS Section Head)"
-                            
                             df_gl.to_csv(DB_FILE, index=False)
                             st.rerun()
                     with cols[9]:
@@ -476,12 +475,26 @@ else:
                             st.rerun()
                     st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
+            st.subheader("Arsip Dokumen Selesai (Sebagai Pjs. Section Head)")
+            history_pjs = df_gl[(df_gl["Status"] == "Final Approved") & (df_gl["Nama_SH"] == f"{st.session_state.username} (PJS Section Head)")]
+            if history_pjs.empty:
+                st.write("Belum ada dokumen SPL yang Anda selesaikan sebagai Pjs.")
+            else:
+                for idx, row in history_pjs.iterrows():
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write(f"📄 **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui pada: {row['Waktu_SH']})")
+                    with col2:
+                        file_pdf = create_pdf(row)
+                        with open(file_pdf, "rb") as f:
+                            st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_pjs_fin_{row['ID']}")
+
+
     # ------------------------------------------
     # TAMPILAN KHUSUS SECTION HEAD
     # ------------------------------------------
     elif st.session_state.role == "Section Head":
         
-        # --- FITUR PENGATURAN DELEGASI ---
         with st.expander("⚙️ PENGATURAN DELEGASI CUTI / OFFSITE", expanded=config_del["status_aktif"]):
             col_d1, col_d2 = st.columns([2, 2])
             with col_d1:
@@ -511,7 +524,6 @@ else:
                 st.error(f"🚨 **STATUS:** Kewenangan Section Head saat ini sedang dibantu / dialihkan kepada **{config_del['pjs_nama']}**.")
         
         st.markdown("<hr>", unsafe_allow_html=True)
-        # ---------------------------------
 
         df_sh = pd.read_csv(DB_FILE, dtype=str)
         st.subheader("Verifikasi Akhir (Final Approve)")
@@ -578,7 +590,6 @@ else:
             for idx, row in approved_sh.iterrows():
                 col1, col2 = st.columns([3, 1])
                 
-                # Membaca nama bersih untuk di layar dashboard
                 nama_tampil = str(row['Nama_SH']).replace(" (PJS Section Head)", "") if pd.notna(row['Nama_SH']) else 'Haris Abi Wibowo'
                 
                 with col1:
@@ -592,53 +603,85 @@ else:
     # TAMPILAN KHUSUS ADMIN (MONITORING & EXCEL)
     # ------------------------------------------
     elif st.session_state.role == "Admin":
-        df_admin = pd.read_csv(DB_FILE, dtype=str)
+        df_admin_raw = pd.read_csv(DB_FILE, dtype=str)
         
-        st.subheader("📊 Tabel Database Seluruh SPL")
+        # --- FITUR BARU: PANEL FILTER ---
+        st.subheader("🎛️ Filter Data SPL")
+        col_f1, col_f2 = st.columns([1, 2])
+        with col_f1:
+            mode_filter = st.radio("Mode Filter:", ["Semua Data", "Harian (Per Tanggal)", "Bulanan (Per Bulan)"], horizontal=True)
         
-        df_display = df_admin.copy()
-        if "ID" in df_display.columns:
-            df_display = df_display.drop(columns=["ID"])
+        df_admin = df_admin_raw.copy()
+        nama_file_excel = "Rekapan_SPL_Semua"
+        
+        with col_f2:
+            if mode_filter == "Harian (Per Tanggal)":
+                tgl_filter = st.date_input("Pilih Tanggal:", value=datetime.now().date())
+                df_admin = df_admin[df_admin["Tanggal"] == str(tgl_filter)]
+                nama_file_excel = f"Rekapan_SPL_{tgl_filter}"
+                
+            elif mode_filter == "Bulanan (Per Bulan)":
+                c_bln, c_thn = st.columns(2)
+                list_bulan = [f"{i:02d}" for i in range(1, 13)]
+                list_tahun = [str(y) for y in range(2024, 2031)]
+                bln = c_bln.selectbox("Pilih Bulan:", list_bulan, index=datetime.now().month - 1)
+                thn = c_thn.selectbox("Pilih Tahun:", list_tahun, index=list_tahun.index(str(datetime.now().year)))
+                
+                kunci_filter = f"{thn}-{bln}"
+                df_admin = df_admin[df_admin["Tanggal"].astype(str).str.startswith(kunci_filter, na=False)]
+                nama_file_excel = f"Rekapan_SPL_Bulan_{kunci_filter}"
+                
+        st.markdown("---")
+        # ---------------------------------
+        
+        if df_admin.empty:
+            st.warning("⚠️ Tidak ada data SPL yang ditemukan untuk filter yang dipilih.")
+        else:
+            st.subheader("📊 Tabel Database SPL")
             
-        df_display.insert(0, "No.", range(1, len(df_display) + 1))
-        
-        csv_data = df_display.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Rekapan Format Excel (CSV)", 
-            data=csv_data, 
-            file_name="Rekapan_SPL_Maco.csv", 
-            mime="text/csv"
-        )
-        
-        st.dataframe(df_display, hide_index=True)
-        
-        st.markdown("---")
-        
-        st.subheader("⏳ Tracking Dokumen Belum Selesai (Pending)")
-        pending_admin = df_admin[df_admin["Status"] != "Final Approved"]
-        if pending_admin.empty:
-            st.success("TIDAK ADA ANTRIAN. Seluruh pengajuan lembur sudah disetujui.")
-        else:
-            for idx, row in pending_admin.iterrows():
-                if row["Status"] == "Pending GL":
-                    posisi = f"Menunggu Persetujuan GL/UH: {row['Pengawas_Tujuan']}"
-                    st.warning(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
-                else:
-                    posisi = "Menunggu Persetujuan Akhir Section Head"
-                    st.info(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
-                    
-        st.markdown("---")
-        
-        st.subheader("🗂️ Arsip Lengkap Dokumen PDF")
-        approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
-        if approved_admin.empty:
-            st.write("Belum ada dokumen PDF yang di-generate.")
-        else:
-            for idx, row in approved_admin.iterrows():
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.write(f"✅ **SPL {row['Nama']} & {row['Tanggal']}**")
-                with col2:
-                    file_pdf = create_pdf(df_admin.loc[idx])
-                    with open(file_pdf, "rb") as f:
-                        st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
+            df_display = df_admin.copy()
+            if "ID" in df_display.columns:
+                df_display = df_display.drop(columns=["ID"])
+                
+            df_display.insert(0, "No.", range(1, len(df_display) + 1))
+            
+            csv_data = df_display.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Rekapan Format Excel (CSV)", 
+                data=csv_data, 
+                file_name=f"{nama_file_excel}.csv", 
+                mime="text/csv"
+            )
+            
+            st.dataframe(df_display, hide_index=True)
+            
+            st.markdown("---")
+            
+            st.subheader("⏳ Tracking Dokumen Belum Selesai (Pending)")
+            pending_admin = df_admin[df_admin["Status"] != "Final Approved"]
+            if pending_admin.empty:
+                st.success("TIDAK ADA ANTRIAN pada filter ini. Seluruh pengajuan lembur sudah disetujui.")
+            else:
+                for idx, row in pending_admin.iterrows():
+                    if row["Status"] == "Pending GL":
+                        posisi = f"Menunggu Persetujuan GL/UH: {row['Pengawas_Tujuan']}"
+                        st.warning(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
+                    else:
+                        posisi = "Menunggu Persetujuan Akhir Section Head"
+                        st.info(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **{posisi}**")
+                        
+            st.markdown("---")
+            
+            st.subheader("🗂️ Arsip Lengkap Dokumen PDF")
+            approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
+            if approved_admin.empty:
+                st.write("Belum ada dokumen PDF yang di-generate pada filter ini.")
+            else:
+                for idx, row in approved_admin.iterrows():
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write(f"✅ **SPL {row['Nama']} & {row['Tanggal']}**")
+                    with col2:
+                        file_pdf = create_pdf(row)
+                        with open(file_pdf, "rb") as f:
+                            st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
