@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 import os
 import time
-import base64 # <-- Modul baru untuk membaca PDF langsung di browser
+import base64
 
 # Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
@@ -36,7 +36,7 @@ div[data-testid="stPopover"] button {
 div[data-testid="stPopoverBody"] {
     width: 700px !important;
     max-width: 90vw !important;
-    height: 600px !important;
+    height: 650px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -144,11 +144,17 @@ def create_pdf(row):
     pdf.output(filename)
     return filename
 
-# Fungsi khusus untuk menampilkan PDF di browser
+# --- PERBAIKAN FITUR VIEW PDF ---
 def display_pdf(file_path):
     with open(file_path, "rb") as f:
         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="550px" type="application/pdf" style="border: none;"></iframe>'
+    
+    # Menggunakan kombinasi <object> dan <embed> agar lolos dari blokir Microsoft Edge / Chrome
+    pdf_display = f'''
+    <object data="data:application/pdf;base64,{base64_pdf}" type="application/pdf" width="100%" height="550px">
+        <embed src="data:application/pdf;base64,{base64_pdf}" type="application/pdf" width="100%" height="550px" />
+    </object>
+    '''
     st.markdown(pdf_display, unsafe_allow_html=True)
 
 # ==========================================
@@ -333,10 +339,12 @@ else:
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
-                    # Tombol 👁️ Langsung Buka PDF Inline!
                     with st.popover("👁️"):
                         file_pdf = create_pdf(row)
                         display_pdf(file_pdf)
+                        # Tombol cadangan jika preview tetap gagal tampil di Edge
+                        with open(file_pdf, "rb") as f:
+                            st.download_button("📥 Download PDF (Jika Gagal Preview)", f, file_name=f"Draft_{file_pdf}", key=f"dl_gl_{row['ID']}")
                             
                 with cols[8]:
                     if st.button("Approve", key=f"app_{row['ID']}"):
@@ -407,10 +415,12 @@ else:
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
-                    # Tombol 👁️ Langsung Buka PDF Inline!
                     with st.popover("👁️"):
                         file_pdf = create_pdf(row)
                         display_pdf(file_pdf)
+                        # Tombol cadangan jika preview tetap gagal tampil di Edge
+                        with open(file_pdf, "rb") as f:
+                            st.download_button("📥 Download PDF (Jika Gagal Preview)", f, file_name=f"Draft_{file_pdf}", key=f"dl_sh_{row['ID']}")
                             
                 with cols[8]:
                     if st.button("Approve", key=f"sh_app_{row['ID']}"):
