@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import time
 import base64
+import json
 
 # Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
@@ -27,21 +28,18 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) {
     font-weight: bold !important;
 }
 
-/* Menyesuaikan tombol popover mata agar rapi */
 div[data-testid="stPopover"] button {
     padding: 0.2rem 0.5rem !important;
 }
 
-/* Membuat kotak Popover lebih lebar agar PDF mudah dibaca */
 div[data-testid="stPopoverBody"] {
-    width: 700px !important;
+    width: 650px !important;
     max-width: 90vw !important;
-    height: 650px !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# Setup Session State untuk Login Multi-Akun
+# Setup Session State untuk Login
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.role = ""
@@ -56,16 +54,28 @@ AKUN_GL = {
     "Bapak Citra (GL 3)": "citra123"
 }
 
-# Database Sederhana (CSV)
-DB_FILE = "data_spl_v7.csv"
+# Database Sederhana (CSV) - V8 (Tambah kolom Nama_SH)
+DB_FILE = "data_spl_v8.csv"
 if not os.path.exists(DB_FILE):
     df = pd.DataFrame(columns=[
         "ID", "Nama", "NRP", "Section", "Shift", "Tanggal", "Jam", "Perusahaan", "Alasan", 
-        "Pengawas_Tujuan", "Status", "Waktu_GL", "Nama_GL", "Waktu_SH"
+        "Pengawas_Tujuan", "Status", "Waktu_GL", "Nama_GL", "Waktu_SH", "Nama_SH"
     ])
     df.to_csv(DB_FILE, index=False)
 
-# Fungsi Generate PDF Tabel
+# File Konfigurasi Pendelegasian
+CONFIG_FILE = "delegasi.json"
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    return {"status_aktif": False, "pjs_nama": ""}
+
+def save_config(config):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config, f)
+
+# Fungsi Generate PDF
 def create_pdf(row):
     pdf = FPDF()
     pdf.add_page()
@@ -130,7 +140,9 @@ def create_pdf(row):
     
     pdf.ln(8) 
     nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
-    nama_sh = "Haris Abi Wibowo"
+    
+    # Dinamis: Jika di-approve oleh Pjs, maka akan mencetak nama Pjs. Jika normal, cetak Haris Abi Wibowo.
+    nama_sh = str(row['Nama_SH']) if 'Nama_SH' in row and pd.notna(row['Nama_SH']) and str(row['Nama_SH']) != "nan" else "Haris Abi Wibowo"
     
     pdf.set_font("Arial", "", 10)
     pdf.cell(95, 5, "__________________________", align="C", ln=0)
@@ -144,18 +156,44 @@ def create_pdf(row):
     pdf.output(filename)
     return filename
 
-# --- PERBAIKAN FITUR VIEW PDF ---
-def display_pdf(file_path):
-    with open(file_path, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-    
-    # Menggunakan kombinasi <object> dan <embed> agar lolos dari blokir Microsoft Edge / Chrome
-    pdf_display = f'''
-    <object data="data:application/pdf;base64,{base64_pdf}" type="application/pdf" width="100%" height="550px">
-        <embed src="data:application/pdf;base64,{base64_pdf}" type="application/pdf" width="100%" height="550px" />
-    </object>
-    '''
-    st.markdown(pdf_display, unsafe_allow_html=True)
+# Fungsi Preview Digital HTML Anti-Blokir
+def display_html_preview(row):
+    html_content = f"""
+    <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif;">
+        <div style="border: 1px solid black; padding: 10px; margin-bottom: 10px;">
+            <b>PT. Saptaindra Sejati<br>Site Maco</b>
+        </div>
+        <h3 style="text-align: center; text-decoration: underline;">SURAT PERINTAH LEMBUR</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+            <tr>
+                <td style="border: 1px solid black; padding: 8px; width: 25%;"><b>NAMA</b></td>
+                <td style="border: 1px solid black; padding: 8px;" colspan="3">{row['Nama']}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 8px;"><b>NRP/DEPT</b></td>
+                <td style="border: 1px solid black; padding: 8px;">{row['NRP']} / {row['Section']}</td>
+                <td style="border: 1px solid black; padding: 8px; width: 15%;"><b>SHIFT :</b></td>
+                <td style="border: 1px solid black; padding: 8px; width: 20%;">{row['Shift']}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 8px;"><b>TANGGAL :</b></td>
+                <td style="border: 1px solid black; padding: 8px;">{row['Tanggal']}</td>
+                <td style="border: 1px solid black; padding: 8px;"><b>JAM :</b></td>
+                <td style="border: 1px solid black; padding: 8px;">{row['Jam']}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 8px;"><b>PERUSAHAAN :</b></td>
+                <td style="border: 1px solid black; padding: 8px;" colspan="3">{row['Perusahaan']}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 8px; height: 60px; vertical-align: top;" colspan="4">
+                    <b>Keterangan Lembur :</b><br><br>{row['Alasan']}
+                </td>
+            </tr>
+        </table>
+    </div>
+    """
+    st.markdown(html_content, unsafe_allow_html=True)
 
 # ==========================================
 # HALAMAN LOGIN
@@ -229,13 +267,16 @@ else:
             st.rerun()
     
     st.write("---")
+    
+    config_del = load_config() # Muat status delegasi
 
     # ------------------------------------------
     # TAMPILAN KHUSUS KARYAWAN
     # ------------------------------------------
     if st.session_state.role == "Karyawan":
         st.subheader("Formulir Pengajuan Lembur")
-        with st.form("form_spl"):
+        
+        with st.form("form_spl", clear_on_submit=True):
             col1, col2 = st.columns(2)
             nama = col1.text_input("Nama Karyawan *")
             nrp = col2.text_input("NRP *") 
@@ -270,42 +311,49 @@ else:
             
             alasan = st.text_area("Keterangan Lembur *")
             st.markdown("*Keterangan: Tanda (*) wajib diisi*")
-            submitted = st.form_submit_button("Kirim Pengajuan")
+            
+            submitted = st.form_submit_button("Ajukan Lembur")
             
             if submitted:
                 waktu_awal_menit = (int(jam_a) * 60) + int(menit_a)
                 waktu_akhir_menit = (int(jam_s) * 60) + int(menit_s)
                 
                 if not nama.strip() or not nrp.strip() or not alasan.strip():
-                    st.error("⚠️ PENGIRIMAN GAGAL: Harap pastikan Nama, NRP, dan Keterangan Lembur sudah diisi semua!")
+                    st.error("⚠️ GAGAL: Nama, NRP, dan Keterangan wajib diisi!")
                 elif waktu_akhir_menit <= waktu_awal_menit:
-                    st.error("⚠️ PENGIRIMAN GAGAL: Jam Akhir tidak boleh lebih kecil atau sama dengan Jam Awal!")
+                    st.error("⚠️ GAGAL: Jam Akhir harus lebih besar dari Jam Awal!")
                 else:
                     jam_gabungan = f"{jam_a}:{menit_a} - {jam_s}:{menit_s}"
                     df = pd.read_csv(DB_FILE, dtype=str)
-                    new_id = str(int(time.time())) 
+                    
+                    new_id = str(int(time.time()))
                     new_data = {
                         "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
                         "Jam": jam_gabungan, "Perusahaan": perusahaan, "Alasan": alasan, 
                         "Pengawas_Tujuan": pengawas_tujuan, 
-                        "Status": "Pending GL", "Waktu_GL": None, "Nama_GL": None, "Waktu_SH": None
+                        "Status": "Pending GL", "Waktu_GL": None, "Nama_GL": None, "Waktu_SH": None, "Nama_SH": None
                     }
                     df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
                     df.to_csv(DB_FILE, index=False)
-                    st.success(f"SPL berhasil terkirim ke {pengawas_tujuan}! Waktu: {jam_gabungan}")
+                    
+                    st.success(f"✅ BERHASIL: SPL untuk {nama} terkirim!")
+                    time.sleep(1.5)
+                    st.rerun()
 
     # ------------------------------------------
     # TAMPILAN KHUSUS GL / UH
     # ------------------------------------------
     elif st.session_state.role == "GL/UH":
         df_gl = pd.read_csv(DB_FILE, dtype=str)
-        st.subheader("Menunggu Verifikasi Anda")
+        
+        # 1. TUGAS REGULER SEBAGAI GL
+        st.subheader("Menunggu Verifikasi Anda (Sebagai GL/UH)")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
         if pending_gl.empty:
             st.info("Tidak ada SPL baru untuk Anda saat ini.")
         else:
-            st.markdown("<hr style='margin: 0px; padding: 0px;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
             cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
             cols[0].markdown("**NO**")
             cols[1].markdown("**Tanggal**")
@@ -316,126 +364,194 @@ else:
             cols[6].markdown("**jam Akhir**")
             cols[7].markdown("**View**")
             cols[8].markdown("**Approve**")
-            cols[9].markdown("**Tolak/Hapus**")
-            st.markdown("<hr style='margin: 0px; padding: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+            cols[9].markdown("**Tolak**")
+            st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
             for i, (idx, row) in enumerate(pending_gl.iterrows(), 1):
                 cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
                 cols[0].write(str(i))
-                
                 try:
-                    t_obj = datetime.strptime(row['Tanggal'], "%Y-%m-%d")
-                    t_str = t_obj.strftime("%d/%m/%Y")
+                    t_str = datetime.strptime(row['Tanggal'], "%Y-%m-%d").strftime("%d/%m/%Y")
                 except:
                     t_str = row['Tanggal']
                 cols[1].write(t_str)
-                
                 cols[2].write(row['Nama'])
                 cols[3].write(row['NRP'])
                 cols[4].write(row['Shift'].replace('Shift ', ''))
-                
                 jams = row['Jam'].split(' - ')
                 cols[5].write(jams[0] if len(jams) > 0 else "")
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
                     with st.popover("👁️"):
-                        file_pdf = create_pdf(row)
-                        display_pdf(file_pdf)
-                        # Tombol cadangan jika preview tetap gagal tampil di Edge
-                        with open(file_pdf, "rb") as f:
-                            st.download_button("📥 Download PDF (Jika Gagal Preview)", f, file_name=f"Draft_{file_pdf}", key=f"dl_gl_{row['ID']}")
-                            
+                        display_html_preview(row)
                 with cols[8]:
-                    if st.button("Approve", key=f"app_{row['ID']}"):
+                    if st.button("Approve", key=f"gl_app_{row['ID']}"):
                         df_gl.loc[idx, "Status"] = "Pending SH"
                         df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
                         df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
                         df_gl.to_csv(DB_FILE, index=False)
                         st.rerun()
-                        
                 with cols[9]:
-                    if st.button("Tolak", key=f"del_{row['ID']}"):
+                    if st.button("Tolak", key=f"gl_del_{row['ID']}"):
                         df_gl = df_gl.drop(idx)
                         df_gl.to_csv(DB_FILE, index=False)
                         st.rerun()
+                st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
                 
-                st.markdown("<hr style='margin: 0px; padding: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
+        # 2. TUGAS DELEGASI JIKA DITUNJUK MENJADI PJS SH
+        if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
+            st.markdown("<br><br>", unsafe_allow_html=True)
+            st.warning("👑 **TUGAS PENDELEGASIAN:** Anda saat ini bertindak sebagai **Pjs. Section Head**.")
+            st.subheader("Verifikasi Akhir (Kewenangan Pjs. Section Head)")
+            
+            pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
+            if pending_sh.empty:
+                st.info("Antrean Final Approve kosong.")
+            else:
+                st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
+                cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                cols[0].markdown("**NO**")
+                cols[1].markdown("**Tanggal**")
+                cols[2].markdown("**Nama**")
+                cols[3].markdown("**NRP**")
+                cols[4].markdown("**Shift**")
+                cols[5].markdown("**Jam awal**")
+                cols[6].markdown("**jam Akhir**")
+                cols[7].markdown("**View**")
+                cols[8].markdown("**Approve**")
+                cols[9].markdown("**Tolak**")
+                st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+
+                for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                    cols[0].write(str(i))
+                    try:
+                        t_str = datetime.strptime(row['Tanggal'], "%Y-%m-%d").strftime("%d/%m/%Y")
+                    except:
+                        t_str = row['Tanggal']
+                    cols[1].write(t_str)
+                    cols[2].write(row['Nama'])
+                    cols[3].write(row['NRP'])
+                    cols[4].write(row['Shift'].replace('Shift ', ''))
+                    jams = row['Jam'].split(' - ')
+                    cols[5].write(jams[0] if len(jams) > 0 else "")
+                    cols[6].write(jams[1] if len(jams) > 1 else "")
                     
-        st.subheader("Riwayat Telah Diverifikasi")
-        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved")) & (df_gl["Nama_GL"] == st.session_state.username)]
-        if history_gl.empty:
-            st.write("Belum ada riwayat persetujuan dari Anda.")
-        else:
-            for idx, row in history_gl.iterrows():
-                st.write(f"✅ **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui: {row['Waktu_GL']})")
+                    with cols[7]:
+                        with st.popover("👁️"):
+                            display_html_preview(row)
+                    with cols[8]:
+                        if st.button("Approve", key=f"pjs_app_{row['ID']}"):
+                            df_gl.loc[idx, "Status"] = "Final Approved"
+                            df_gl.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                            # Menyimpan jejak bahwa yang menyetujui adalah PJS
+                            df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (Pjs. Sect Head)"
+                            df_gl.to_csv(DB_FILE, index=False)
+                            st.rerun()
+                    with cols[9]:
+                        if st.button("Tolak", key=f"pjs_del_{row['ID']}"):
+                            df_gl = df_gl.drop(idx)
+                            df_gl.to_csv(DB_FILE, index=False)
+                            st.rerun()
+                    st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
     # ------------------------------------------
     # TAMPILAN KHUSUS SECTION HEAD
     # ------------------------------------------
     elif st.session_state.role == "Section Head":
-        df_sh = pd.read_csv(DB_FILE, dtype=str)
-        st.subheader("Menunggu Verifikasi Akhir")
-        pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
         
-        if pending_sh.empty:
-            st.info("Tidak ada SPL menunggu verifikasi Section Head.")
-        else:
-            st.markdown("<hr style='margin: 0px; padding: 0px;'>", unsafe_allow_html=True)
-            cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-            cols[0].markdown("**NO**")
-            cols[1].markdown("**Tanggal**")
-            cols[2].markdown("**Nama**")
-            cols[3].markdown("**NRP**")
-            cols[4].markdown("**Shift**")
-            cols[5].markdown("**Jam awal**")
-            cols[6].markdown("**jam Akhir**")
-            cols[7].markdown("**View**")
-            cols[8].markdown("**Approve**")
-            cols[9].markdown("**Tolak/Hapus**")
-            st.markdown("<hr style='margin: 0px; padding: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+        # --- FITUR PENGATURAN DELEGASI ---
+        with st.expander("⚙️ PENGATURAN DELEGASI CUTI / OFFSITE", expanded=config_del["status_aktif"]):
+            col_d1, col_d2 = st.columns([2, 2])
+            with col_d1:
+                idx_default = 0
+                if config_del["pjs_nama"] in list(AKUN_GL.keys()):
+                    idx_default = list(AKUN_GL.keys()).index(config_del["pjs_nama"])
+                
+                pjs_pilihan = st.selectbox("Pilih Pengawas Sebagai Pejabat Sementara (Pjs):", list(AKUN_GL.keys()), index=idx_default)
+            
+            with col_d2:
+                st.write("") 
+                st.write("") 
+                if not config_del["status_aktif"]:
+                    if st.button("🚀 Aktifkan Delegasi (Saya Offsite)"):
+                        config_del["status_aktif"] = True
+                        config_del["pjs_nama"] = pjs_pilihan
+                        save_config(config_del)
+                        st.rerun()
+                else:
+                    if st.button("🛑 Cabut Delegasi (Saya Onsite)"):
+                        config_del["status_aktif"] = False
+                        config_del["pjs_nama"] = ""
+                        save_config(config_del)
+                        st.rerun()
+            
+            if config_del["status_aktif"]:
+                st.error(f"🚨 **STATUS:** Kewenangan Section Head saat ini sedang dialihkan kepada **{config_del['pjs_nama']}**.")
+        
+        st.markdown("<hr>", unsafe_allow_html=True)
+        # ---------------------------------
 
-            for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+        df_sh = pd.read_csv(DB_FILE, dtype=str)
+        st.subheader("Verifikasi Akhir (Final Approve)")
+        
+        if config_del["status_aktif"]:
+            st.info("Anda tidak bisa memproses antrean karena kewenangan sedang dialihkan ke Pjs.")
+        else:
+            pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
+            if pending_sh.empty:
+                st.info("Tidak ada SPL menunggu verifikasi Section Head.")
+            else:
+                st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
                 cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-                cols[0].write(str(i))
-                
-                try:
-                    t_obj = datetime.strptime(row['Tanggal'], "%Y-%m-%d")
-                    t_str = t_obj.strftime("%d/%m/%Y")
-                except:
-                    t_str = row['Tanggal']
-                cols[1].write(t_str)
-                
-                cols[2].write(row['Nama'])
-                cols[3].write(row['NRP'])
-                cols[4].write(row['Shift'].replace('Shift ', ''))
-                
-                jams = row['Jam'].split(' - ')
-                cols[5].write(jams[0] if len(jams) > 0 else "")
-                cols[6].write(jams[1] if len(jams) > 1 else "")
-                
-                with cols[7]:
-                    with st.popover("👁️"):
-                        file_pdf = create_pdf(row)
-                        display_pdf(file_pdf)
-                        # Tombol cadangan jika preview tetap gagal tampil di Edge
-                        with open(file_pdf, "rb") as f:
-                            st.download_button("📥 Download PDF (Jika Gagal Preview)", f, file_name=f"Draft_{file_pdf}", key=f"dl_sh_{row['ID']}")
+                cols[0].markdown("**NO**")
+                cols[1].markdown("**Tanggal**")
+                cols[2].markdown("**Nama**")
+                cols[3].markdown("**NRP**")
+                cols[4].markdown("**Shift**")
+                cols[5].markdown("**Jam awal**")
+                cols[6].markdown("**jam Akhir**")
+                cols[7].markdown("**View**")
+                cols[8].markdown("**Approve**")
+                cols[9].markdown("**Tolak**")
+                st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+
+                for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                    cols[0].write(str(i))
+                    try:
+                        t_str = datetime.strptime(row['Tanggal'], "%Y-%m-%d").strftime("%d/%m/%Y")
+                    except:
+                        t_str = row['Tanggal']
+                    cols[1].write(t_str)
+                    cols[2].write(row['Nama'])
+                    cols[3].write(row['NRP'])
+                    cols[4].write(row['Shift'].replace('Shift ', ''))
+                    
+                    jams = row['Jam'].split(' - ')
+                    cols[5].write(jams[0] if len(jams) > 0 else "")
+                    cols[6].write(jams[1] if len(jams) > 1 else "")
+                    
+                    with cols[7]:
+                        with st.popover("👁️"):
+                            display_html_preview(row)
+                                
+                    with cols[8]:
+                        if st.button("Approve", key=f"sh_app_{row['ID']}"):
+                            df_sh.loc[idx, "Status"] = "Final Approved"
+                            df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
+                            df_sh.to_csv(DB_FILE, index=False)
+                            st.rerun()
                             
-                with cols[8]:
-                    if st.button("Approve", key=f"sh_app_{row['ID']}"):
-                        df_sh.loc[idx, "Status"] = "Final Approved"
-                        df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                        df_sh.to_csv(DB_FILE, index=False)
-                        st.rerun()
-                        
-                with cols[9]:
-                    if st.button("Tolak", key=f"sh_del_{row['ID']}"):
-                        df_sh = df_sh.drop(idx)
-                        df_sh.to_csv(DB_FILE, index=False)
-                        st.rerun()
-                
-                st.markdown("<hr style='margin: 0px; padding: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
+                    with cols[9]:
+                        if st.button("Tolak", key=f"sh_del_{row['ID']}"):
+                            df_sh = df_sh.drop(idx)
+                            df_sh.to_csv(DB_FILE, index=False)
+                            st.rerun()
+                    
+                    st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
         st.subheader("Arsip Dokumen Selesai (Siap Unduh)")
         approved_sh = df_sh[df_sh["Status"] == "Final Approved"]
@@ -445,7 +561,7 @@ else:
             for idx, row in approved_sh.iterrows():
                 col1, col2 = st.columns([3, 1])
                 with col1:
-                    st.write(f"📄 **SPL {row['Nama']} & {row['Tanggal']}** (Selesai: {row['Waktu_SH']})")
+                    st.write(f"📄 **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui Oleh: {row['Nama_SH'] if pd.notna(row['Nama_SH']) else 'Haris Abi Wibowo'})")
                 with col2:
                     file_pdf = create_pdf(df_sh.loc[idx])
                     with open(file_pdf, "rb") as f:
