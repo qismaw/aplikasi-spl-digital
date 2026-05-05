@@ -6,6 +6,7 @@ import os
 import time
 import base64
 import json
+import io  # <-- Modul baru untuk memproses file Excel di dalam memori
 
 # Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
@@ -140,10 +141,8 @@ def create_pdf(row):
     pdf.ln(8) 
     
     nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
-    
     nama_sh_raw = str(row['Nama_SH']) if 'Nama_SH' in row and pd.notna(row['Nama_SH']) and str(row['Nama_SH']) != "nan" else "Haris Abi Wibowo"
     
-    # Deteksi jika yang approve adalah PJS
     if "(PJS Section Head)" in nama_sh_raw:
         nama_sh_final = nama_sh_raw.replace(" (PJS Section Head)", "").strip()
         jabatan_sh = "PJS Section Head"
@@ -360,7 +359,6 @@ else:
     elif st.session_state.role == "GL/UH":
         df_gl = pd.read_csv(DB_FILE, dtype=str)
         
-        # 1. TUGAS REGULER SEBAGAI GL
         st.subheader("Menunggu Verifikasi Anda (Sebagai GL/UH)")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
@@ -489,7 +487,6 @@ else:
                         with open(file_pdf, "rb") as f:
                             st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_pjs_fin_{row['ID']}")
 
-
     # ------------------------------------------
     # TAMPILAN KHUSUS SECTION HEAD
     # ------------------------------------------
@@ -589,9 +586,7 @@ else:
         else:
             for idx, row in approved_sh.iterrows():
                 col1, col2 = st.columns([3, 1])
-                
                 nama_tampil = str(row['Nama_SH']).replace(" (PJS Section Head)", "") if pd.notna(row['Nama_SH']) else 'Haris Abi Wibowo'
-                
                 with col1:
                     st.write(f"📄 **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui Oleh: {nama_tampil})")
                 with col2:
@@ -605,7 +600,6 @@ else:
     elif st.session_state.role == "Admin":
         df_admin_raw = pd.read_csv(DB_FILE, dtype=str)
         
-        # --- FITUR BARU: PANEL FILTER ---
         st.subheader("🎛️ Filter Data SPL")
         col_f1, col_f2 = st.columns([1, 2])
         with col_f1:
@@ -632,27 +626,56 @@ else:
                 nama_file_excel = f"Rekapan_SPL_Bulan_{kunci_filter}"
                 
         st.markdown("---")
-        # ---------------------------------
         
         if df_admin.empty:
             st.warning("⚠️ Tidak ada data SPL yang ditemukan untuk filter yang dipilih.")
         else:
-            st.subheader("📊 Tabel Database SPL")
+            st.subheader("📊 Tabel Database SPL & Rekapan Excel")
             
             df_display = df_admin.copy()
             if "ID" in df_display.columns:
                 df_display = df_display.drop(columns=["ID"])
-                
-            df_display.insert(0, "No.", range(1, len(df_display) + 1))
             
-            csv_data = df_display.to_csv(index=False).encode('utf-8')
+            # --- LOGIKA MEMISAHKAN JAM & MENGHITUNG TOTAL ---
+            df_display['Jam Awal'] = df_display['Jam'].apply(lambda x: x.split(' - ')[0] if pd.notna(x) and ' - ' in str(x) else "")
+            df_display['Jam Akhir'] = df_display['Jam'].apply(lambda x: x.split(' - ')[1] if pd.notna(x) and ' - ' in str(x) else "")
+            
+            def hitung_durasi(jam_str):
+                try:
+                    awal, akhir = jam_str.split(' - ')
+                    wa = datetime.strptime(awal, "%H:%M")
+                    wk = datetime.strptime(akhir, "%H:%M")
+                    selisih = (wk - wa).total_seconds() / 3600
+                    if selisih < 0:
+                        selisih += 24 # Lintas hari
+                    return round(selisih, 2) # Mengembalikan angka desimal misal 2.5 Jam
+                except:
+                    return 0
+
+            df_display['Total Lembur (Jam)'] = df_display['Jam'].apply(hitung_durasi)
+            df_display = df_display.drop(columns=['Jam']) 
+            
+            # Merapikan Urutan Kolom
+            df_display.insert(0, "No.", range(1, len(df_display) + 1))
+            cols_order = ['No.', 'Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam Awal', 'Jam Akhir', 'Total Lembur (Jam)', 'Perusahaan', 'Alasan', 'Status', 'Pengawas_Tujuan', 'Waktu_GL', 'Nama_GL', 'Waktu_SH', 'Nama_SH']
+            cols_order = [c for c in cols_order if c in df_display.columns]
+            df_display = df_display[cols_order]
+            
+            # --- PROSES EXPORT KE EXCEL MURNI ---
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+                df_display.to_excel(writer, index=False, sheet_name='Rekap_SPL')
+            
+            excel_data = buffer.getvalue()
+            
             st.download_button(
-                label="📥 Download Rekapan Format Excel (CSV)", 
-                data=csv_data, 
-                file_name=f"{nama_file_excel}.csv", 
-                mime="text/csv"
+                label="📥 Download Rekapan Excel (.xlsx)", 
+                data=excel_data, 
+                file_name=f"{nama_file_excel}.xlsx", 
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
             
+            # Menampilkan preview tabel di web
             st.dataframe(df_display, hide_index=True)
             
             st.markdown("---")
