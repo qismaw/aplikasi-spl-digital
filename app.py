@@ -3,6 +3,7 @@ from fpdf import FPDF
 import pandas as pd
 from datetime import datetime
 import os
+import time
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
@@ -22,8 +23,8 @@ AKUN_GL = {
     "Bapak Citra (GL 3)": "citra123"
 }
 
-# Database Sederhana (CSV)
-DB_FILE = "data_spl_v6.csv"
+# Database Sederhana (CSV) - Versi 7 (ID Unik & Fitur Hapus)
+DB_FILE = "data_spl_v7.csv"
 if not os.path.exists(DB_FILE):
     df = pd.DataFrame(columns=[
         "ID", "Nama", "NRP", "Section", "Shift", "Tanggal", "Jam", "Perusahaan", "Alasan", 
@@ -87,8 +88,7 @@ def create_pdf(row):
     except:
         pass
         
-    pdf.ln(18) # Loncatan agar teks di bawah logo
-    
+    pdf.ln(18) 
     gl_sign = f"Digitally Signed: {row['Waktu_GL']}" if str(row['Waktu_GL']) != "nan" else ""
     sh_sign = f"Digitally Signed: {row['Waktu_SH']}" if str(row['Waktu_SH']) != "nan" else ""
     
@@ -207,7 +207,8 @@ else:
             ])
             
             col_tgl, col_shift = st.columns(2)
-            tgl = col_tgl.date_input("Tanggal")
+            # TANGGAL DILOCK (disabled=True)
+            tgl = col_tgl.date_input("Tanggal", value=datetime.now().date(), disabled=True)
             shift = col_shift.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
             
             pengawas_tujuan = st.selectbox("Pengawas (GL) Yang Bertugas", list(AKUN_GL.keys()))
@@ -234,7 +235,8 @@ else:
             if submitted:
                 jam_gabungan = f"{jam_a}:{menit_a} - {jam_s}:{menit_s}"
                 df = pd.read_csv(DB_FILE, dtype=str)
-                new_id = len(df) + 1
+                # Menggunakan timestamp agar ID selalu unik (aman saat ada penghapusan data)
+                new_id = str(int(time.time())) 
                 new_data = {
                     "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
                     "Jam": jam_gabungan, "Perusahaan": perusahaan, "Alasan": alasan, 
@@ -257,13 +259,31 @@ else:
             st.info("Tidak ada SPL baru untuk Anda saat ini.")
         else:
             for idx, row in pending_gl.iterrows():
-                label_tombol = f"Approve: {row['Nama']} & {row['Tanggal']} ({row['Shift']})"
-                if st.button(label_tombol, key=f"gl_{row['ID']}"):
-                    df_gl.loc[idx, "Status"] = "Pending SH"
-                    df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                    df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
-                    df_gl.to_csv(DB_FILE, index=False)
-                    st.rerun()
+                # FITUR VIEW (Expander)
+                with st.expander(f"📌 Tinjau: {row['Nama']} - {row['Tanggal']} ({row['Shift']})"):
+                    st.write(f"**NRP/DEPT:** {row['NRP']} / {row['Section']}")
+                    st.write(f"**Jam Lembur:** {row['Jam']}")
+                    st.write(f"**Perusahaan:** {row['Perusahaan']}")
+                    st.write(f"**Keterangan/Alasan:** {row['Alasan']}")
+                    
+                    st.write("---")
+                    col_app, col_del, col_blank = st.columns([2, 2, 4])
+                    
+                    with col_app:
+                        if st.button("✅ Approve", key=f"gl_app_{row['ID']}"):
+                            df_gl.loc[idx, "Status"] = "Pending SH"
+                            df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                            df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
+                            df_gl.to_csv(DB_FILE, index=False)
+                            st.rerun()
+                            
+                    with col_del:
+                        # FITUR HAPUS DATA JIKA SALAH
+                        if st.button("❌ Tolak / Hapus", key=f"gl_del_{row['ID']}"):
+                            df_gl = df_gl.drop(idx)
+                            df_gl.to_csv(DB_FILE, index=False)
+                            st.warning(f"Data pengajuan {row['Nama']} telah dihapus.")
+                            st.rerun()
                     
         st.markdown("---")
         st.subheader("Riwayat Telah Diverifikasi")
@@ -285,12 +305,19 @@ else:
             st.info("Tidak ada SPL menunggu verifikasi Section Head.")
         else:
             for idx, row in pending_sh.iterrows():
-                label_tombol = f"Final Approve: {row['Nama']} & {row['Tanggal']} (Oleh: {row['Nama_GL']})"
-                if st.button(label_tombol, key=f"sh_{row['ID']}"):
-                    df_sh.loc[idx, "Status"] = "Final Approved"
-                    df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                    df_sh.to_csv(DB_FILE, index=False)
-                    st.rerun()
+                # FITUR VIEW (Expander)
+                with st.expander(f"📌 Tinjau: {row['Nama']} - {row['Tanggal']} (Di-Approve GL: {row['Nama_GL']})"):
+                    st.write(f"**NRP/DEPT:** {row['NRP']} / {row['Section']}")
+                    st.write(f"**Shift & Jam:** {row['Shift']} | {row['Jam']}")
+                    st.write(f"**Perusahaan:** {row['Perusahaan']}")
+                    st.write(f"**Keterangan:** {row['Alasan']}")
+                    
+                    st.write("---")
+                    if st.button("✅ Final Approve", key=f"sh_app_{row['ID']}"):
+                        df_sh.loc[idx, "Status"] = "Final Approved"
+                        df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                        df_sh.to_csv(DB_FILE, index=False)
+                        st.rerun()
 
         st.markdown("---")
         st.subheader("Arsip Dokumen Selesai (Siap Unduh)")
