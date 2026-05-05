@@ -23,7 +23,7 @@ AKUN_GL = {
     "Bapak Citra (GL 3)": "citra123"
 }
 
-# Database Sederhana (CSV) - Versi 7 (ID Unik & Fitur Hapus)
+# Database Sederhana (CSV)
 DB_FILE = "data_spl_v7.csv"
 if not os.path.exists(DB_FILE):
     df = pd.DataFrame(columns=[
@@ -43,7 +43,6 @@ def create_pdf(row):
     pdf.set_font("Arial", "", 10)
     pdf.multi_cell(0, 10, "PT. Saptaindra Sejati\nSite Maco", border=1, align='L')
     
-    # Logo Perusahaan Kiri Atas
     try:
         pdf.image("logo.png.png", x=9, y=11, w=42) 
     except:
@@ -54,7 +53,6 @@ def create_pdf(row):
     pdf.cell(0, 10, "SURAT PERINTAH LEMBUR", ln=True, align="C")
     pdf.ln(5)
     
-    # Body Tabel
     pdf.set_font("Arial", "", 10)
     pdf.cell(40, 10, " NAMA", border=1)
     pdf.cell(150, 10, f" {row['Nama']}", border=1, ln=True)
@@ -71,7 +69,6 @@ def create_pdf(row):
     pdf.cell(190, 10, " Keterangan Lembur :", border="LTR", ln=True)
     pdf.multi_cell(190, 10, f" {row['Alasan']}\n\n", border="LBR")
     
-    # Bagian Tanda Tangan & Cap Digital Watermark
     pdf.ln(10)
     pdf.set_font("Arial", "", 10)
     pdf.cell(95, 5, "Diketahui,", align="C")
@@ -79,7 +76,6 @@ def create_pdf(row):
     
     y_pos = pdf.get_y()
     
-    # Cap Digital (Watermark) Logo AlamTri
     try:
         if str(row['Waktu_GL']) != "nan":
             pdf.image("logo.png.png", x=35, y=y_pos + 2, w=35) 
@@ -92,13 +88,11 @@ def create_pdf(row):
     gl_sign = f"Digitally Signed: {row['Waktu_GL']}" if str(row['Waktu_GL']) != "nan" else ""
     sh_sign = f"Digitally Signed: {row['Waktu_SH']}" if str(row['Waktu_SH']) != "nan" else ""
     
-    # Warna Biru untuk Teks Digital Sign
     pdf.set_text_color(0, 0, 255)
     pdf.set_font("Arial", "I", 8)
     pdf.cell(95, 5, gl_sign, align="C")
     pdf.cell(95, 5, sh_sign, align="C", ln=True)
     
-    # Kembalikan ke warna Hitam untuk nama
     pdf.set_text_color(0, 0, 0)
     
     pdf.ln(8) 
@@ -197,8 +191,8 @@ else:
         st.subheader("Formulir Pengajuan Lembur")
         with st.form("form_spl"):
             col1, col2 = st.columns(2)
-            nama = col1.text_input("Nama Karyawan")
-            nrp = col2.text_input("NRP") 
+            nama = col1.text_input("Nama Karyawan *")
+            nrp = col2.text_input("NRP *") 
             
             col_sec, col_per = st.columns(2)
             section = col_sec.selectbox("Section", ["Logistik"]) 
@@ -207,7 +201,6 @@ else:
             ])
             
             col_tgl, col_shift = st.columns(2)
-            # TANGGAL DILOCK (disabled=True)
             tgl = col_tgl.date_input("Tanggal", value=datetime.now().date(), disabled=True)
             shift = col_shift.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
             
@@ -229,23 +222,28 @@ else:
                 jam_s = c3.selectbox("Jam Selesai", list_jam)
                 menit_s = c4.selectbox("Menit Selesai", list_menit)
             
-            alasan = st.text_area("Keterangan Lembur")
+            alasan = st.text_area("Keterangan Lembur *")
+            
+            st.markdown("*Keterangan: Tanda (*) wajib diisi*")
             submitted = st.form_submit_button("Kirim Pengajuan")
             
             if submitted:
-                jam_gabungan = f"{jam_a}:{menit_a} - {jam_s}:{menit_s}"
-                df = pd.read_csv(DB_FILE, dtype=str)
-                # Menggunakan timestamp agar ID selalu unik (aman saat ada penghapusan data)
-                new_id = str(int(time.time())) 
-                new_data = {
-                    "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
-                    "Jam": jam_gabungan, "Perusahaan": perusahaan, "Alasan": alasan, 
-                    "Pengawas_Tujuan": pengawas_tujuan, 
-                    "Status": "Pending GL", "Waktu_GL": None, "Nama_GL": None, "Waktu_SH": None
-                }
-                df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
-                df.to_csv(DB_FILE, index=False)
-                st.success(f"SPL berhasil terkirim ke {pengawas_tujuan}! Waktu: {jam_gabungan}")
+                # --- VALIDASI WAJIB ISI (TIDAK BOLEH KOSONG) ---
+                if not nama.strip() or not nrp.strip() or not alasan.strip():
+                    st.error("⚠️ PENGIRIMAN GAGAL: Harap pastikan Nama, NRP, dan Keterangan Lembur sudah diisi semua!")
+                else:
+                    jam_gabungan = f"{jam_a}:{menit_a} - {jam_s}:{menit_s}"
+                    df = pd.read_csv(DB_FILE, dtype=str)
+                    new_id = str(int(time.time())) 
+                    new_data = {
+                        "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
+                        "Jam": jam_gabungan, "Perusahaan": perusahaan, "Alasan": alasan, 
+                        "Pengawas_Tujuan": pengawas_tujuan, 
+                        "Status": "Pending GL", "Waktu_GL": None, "Nama_GL": None, "Waktu_SH": None
+                    }
+                    df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
+                    df.to_csv(DB_FILE, index=False)
+                    st.success(f"SPL berhasil terkirim ke {pengawas_tujuan}! Waktu: {jam_gabungan}")
 
     # ------------------------------------------
     # TAMPILAN KHUSUS GL / UH
@@ -259,10 +257,10 @@ else:
             st.info("Tidak ada SPL baru untuk Anda saat ini.")
         else:
             for idx, row in pending_gl.iterrows():
-                # FITUR VIEW (Expander)
                 with st.expander(f"📌 Tinjau: {row['Nama']} - {row['Tanggal']} ({row['Shift']})"):
+                    # --- MENAMBAHKAN SHIFT DI RINCIAN AGAR SAMA SEPERTI PDF ---
                     st.write(f"**NRP/DEPT:** {row['NRP']} / {row['Section']}")
-                    st.write(f"**Jam Lembur:** {row['Jam']}")
+                    st.write(f"**Shift & Jam Lembur:** {row['Shift']} | {row['Jam']}")
                     st.write(f"**Perusahaan:** {row['Perusahaan']}")
                     st.write(f"**Keterangan/Alasan:** {row['Alasan']}")
                     
@@ -278,7 +276,6 @@ else:
                             st.rerun()
                             
                     with col_del:
-                        # FITUR HAPUS DATA JIKA SALAH
                         if st.button("❌ Tolak / Hapus", key=f"gl_del_{row['ID']}"):
                             df_gl = df_gl.drop(idx)
                             df_gl.to_csv(DB_FILE, index=False)
@@ -305,12 +302,11 @@ else:
             st.info("Tidak ada SPL menunggu verifikasi Section Head.")
         else:
             for idx, row in pending_sh.iterrows():
-                # FITUR VIEW (Expander)
                 with st.expander(f"📌 Tinjau: {row['Nama']} - {row['Tanggal']} (Di-Approve GL: {row['Nama_GL']})"):
                     st.write(f"**NRP/DEPT:** {row['NRP']} / {row['Section']}")
-                    st.write(f"**Shift & Jam:** {row['Shift']} | {row['Jam']}")
+                    st.write(f"**Shift & Jam Lembur:** {row['Shift']} | {row['Jam']}")
                     st.write(f"**Perusahaan:** {row['Perusahaan']}")
-                    st.write(f"**Keterangan:** {row['Alasan']}")
+                    st.write(f"**Keterangan/Alasan:** {row['Alasan']}")
                     
                     st.write("---")
                     if st.button("✅ Final Approve", key=f"sh_app_{row['ID']}"):
