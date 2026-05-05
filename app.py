@@ -5,8 +5,33 @@ from datetime import datetime
 import os
 import time
 
-# Konfigurasi Halaman
+# Konfigurasi Halaman & CSS Kustom untuk Warna Tombol
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
+
+st.markdown("""
+<style>
+/* Desain Tombol Approve (Hijau) */
+div[data-testid="stButton"] button:has(p:contains("Approve")) {
+    background-color: #00c853 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: bold !important;
+}
+
+/* Desain Tombol Tolak (Merah) */
+div[data-testid="stButton"] button:has(p:contains("Tolak")) {
+    background-color: #ff1744 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: bold !important;
+}
+
+/* Menyesuaikan tombol popover mata agar rapi */
+div[data-testid="stPopover"] button {
+    padding: 0.2rem 0.5rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Setup Session State untuk Login Multi-Akun
 if "logged_in" not in st.session_state:
@@ -227,11 +252,9 @@ else:
             submitted = st.form_submit_button("Kirim Pengajuan")
             
             if submitted:
-                # Menghitung total menit untuk validasi logika jam
                 waktu_awal_menit = (int(jam_a) * 60) + int(menit_a)
                 waktu_akhir_menit = (int(jam_s) * 60) + int(menit_s)
                 
-                # --- VALIDASI JAM & WAJIB ISI ---
                 if not nama.strip() or not nrp.strip() or not alasan.strip():
                     st.error("⚠️ PENGIRIMAN GAGAL: Harap pastikan Nama, NRP, dan Keterangan Lembur sudah diisi semua!")
                 elif waktu_akhir_menit <= waktu_awal_menit:
@@ -261,7 +284,6 @@ else:
         if pending_gl.empty:
             st.info("Tidak ada SPL baru untuk Anda saat ini.")
         else:
-            # HEADER TABEL (Desain Rapi dengan Garis)
             st.markdown("<hr style='margin: 0px; padding: 0px;'>", unsafe_allow_html=True)
             cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
             cols[0].markdown("**NO**")
@@ -276,12 +298,10 @@ else:
             cols[9].markdown("**Tolak/Hapus**")
             st.markdown("<hr style='margin: 0px; padding: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
-            # ISI TABEL
             for i, (idx, row) in enumerate(pending_gl.iterrows(), 1):
                 cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
                 cols[0].write(str(i))
                 
-                # Format ulang YYYY-MM-DD menjadi DD/MM/YYYY agar persis di gambar
                 try:
                     t_obj = datetime.strptime(row['Tanggal'], "%Y-%m-%d")
                     t_str = t_obj.strftime("%d/%m/%Y")
@@ -298,8 +318,7 @@ else:
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
-                    # Tombol 'view' yang membuka jendela rincian
-                    with st.popover("view"):
+                    with st.popover("👁️"):
                         st.write(f"**Perusahaan:** {row['Perusahaan']}")
                         st.write(f"**Alasan:** {row['Alasan']}")
                         file_pdf = create_pdf(row)
@@ -307,7 +326,7 @@ else:
                             st.download_button("📄 Draft PDF", f, file_name=f"Draft_{file_pdf}", key=f"dl_gl_{row['ID']}")
                             
                 with cols[8]:
-                    if st.button("V", key=f"app_{row['ID']}"):
+                    if st.button("Approve", key=f"app_{row['ID']}"):
                         df_gl.loc[idx, "Status"] = "Pending SH"
                         df_gl.loc[idx, "Waktu_GL"] = datetime.now().strftime("%Y-%m-%d %H:%M")
                         df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
@@ -315,7 +334,7 @@ else:
                         st.rerun()
                         
                 with cols[9]:
-                    if st.button("X", key=f"del_{row['ID']}"):
+                    if st.button("Tolak", key=f"del_{row['ID']}"):
                         df_gl = df_gl.drop(idx)
                         df_gl.to_csv(DB_FILE, index=False)
                         st.rerun()
@@ -341,7 +360,6 @@ else:
         if pending_sh.empty:
             st.info("Tidak ada SPL menunggu verifikasi Section Head.")
         else:
-            # HEADER TABEL SH
             st.markdown("<hr style='margin: 0px; padding: 0px;'>", unsafe_allow_html=True)
             cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
             cols[0].markdown("**NO**")
@@ -356,7 +374,6 @@ else:
             cols[9].markdown("**Tolak/Hapus**")
             st.markdown("<hr style='margin: 0px; padding: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
-            # ISI TABEL SH
             for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
                 cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
                 cols[0].write(str(i))
@@ -377,7 +394,7 @@ else:
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
-                    with st.popover("view"):
+                    with st.popover("👁️"):
                         st.write(f"**Di-Approve Oleh GL:** {row['Nama_GL']}")
                         st.write(f"**Perusahaan:** {row['Perusahaan']}")
                         st.write(f"**Keterangan:** {row['Alasan']}")
@@ -386,14 +403,14 @@ else:
                             st.download_button("📄 Draft PDF", f, file_name=f"Draft_{file_pdf}", key=f"dl_sh_{row['ID']}")
                             
                 with cols[8]:
-                    if st.button("V", key=f"sh_app_{row['ID']}"):
+                    if st.button("Approve", key=f"sh_app_{row['ID']}"):
                         df_sh.loc[idx, "Status"] = "Final Approved"
                         df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
                         df_sh.to_csv(DB_FILE, index=False)
                         st.rerun()
                         
                 with cols[9]:
-                    if st.button("X", key=f"sh_del_{row['ID']}"):
+                    if st.button("Tolak", key=f"sh_del_{row['ID']}"):
                         df_sh = df_sh.drop(idx)
                         df_sh.to_csv(DB_FILE, index=False)
                         st.rerun()
