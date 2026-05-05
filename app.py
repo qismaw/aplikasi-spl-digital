@@ -54,7 +54,7 @@ AKUN_GL = {
     "Bapak Citra (GL 3)": "citra123"
 }
 
-# Database Sederhana (CSV) - V8 (Tambah kolom Nama_SH)
+# Database Sederhana (CSV) - V8
 DB_FILE = "data_spl_v8.csv"
 if not os.path.exists(DB_FILE):
     df = pd.DataFrame(columns=[
@@ -137,26 +137,44 @@ def create_pdf(row):
     pdf.cell(95, 5, sh_sign, align="C", ln=True)
     
     pdf.set_text_color(0, 0, 0)
-    
     pdf.ln(8) 
+    
+    # --- LOGIKA PENENTUAN NAMA DAN JABATAN UNTUK TANDA TANGAN ---
     nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
     
-    # Dinamis: Jika di-approve oleh Pjs, maka akan mencetak nama Pjs. Jika normal, cetak Haris Abi Wibowo.
-    nama_sh = str(row['Nama_SH']) if 'Nama_SH' in row and pd.notna(row['Nama_SH']) and str(row['Nama_SH']) != "nan" else "Haris Abi Wibowo"
+    nama_sh_raw = str(row['Nama_SH']) if 'Nama_SH' in row and pd.notna(row['Nama_SH']) and str(row['Nama_SH']) != "nan" else "Haris Abi Wibowo"
     
+    # Deteksi jika yang approve adalah PJS
+    if "(PJS Section Head)" in nama_sh_raw:
+        nama_sh_final = nama_sh_raw.replace(" (PJS Section Head)", "").strip()
+        jabatan_sh = "PJS Section Head"
+    elif "(Pjs. Sect Head)" in nama_sh_raw: # Kompatibilitas untuk data lama jika ada
+        nama_sh_final = nama_sh_raw.replace(" (Pjs. Sect Head)", "").strip()
+        jabatan_sh = "PJS Section Head"
+    else:
+        nama_sh_final = nama_sh_raw
+        jabatan_sh = "Section Head"
+    
+    # 1. Garis Bawah
     pdf.set_font("Arial", "", 10)
     pdf.cell(95, 5, "__________________________", align="C", ln=0)
     pdf.cell(95, 5, "__________________________", align="C", ln=1)
     
+    # 2. Nama Terang
     pdf.set_font("Arial", "B", 9)
     pdf.cell(95, 5, nama_pengawas, align="C") 
-    pdf.cell(95, 5, nama_sh, align="C", ln=1)
+    pdf.cell(95, 5, nama_sh_final, align="C", ln=1)
+    
+    # 3. Posisi / Jabatan di bawah nama
+    pdf.set_font("Arial", "", 8)
+    pdf.cell(95, 4, "GL / UH", align="C") 
+    pdf.cell(95, 4, jabatan_sh, align="C", ln=1)
     
     filename = f"SPL_{row['ID']}.pdf"
     pdf.output(filename)
     return filename
 
-# Fungsi Preview Digital HTML Anti-Blokir
+# Fungsi Preview Digital HTML
 def display_html_preview(row):
     html_content = f"""
     <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif;">
@@ -268,7 +286,7 @@ else:
     
     st.write("---")
     
-    config_del = load_config() # Muat status delegasi
+    config_del = load_config()
 
     # ------------------------------------------
     # TAMPILAN KHUSUS KARYAWAN
@@ -445,8 +463,10 @@ else:
                         if st.button("Approve", key=f"pjs_app_{row['ID']}"):
                             df_gl.loc[idx, "Status"] = "Final Approved"
                             df_gl.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                            # Menyimpan jejak bahwa yang menyetujui adalah PJS
-                            df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (Pjs. Sect Head)"
+                            
+                            # --- PENANDA KHUSUS PJS ---
+                            df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS Section Head)"
+                            
                             df_gl.to_csv(DB_FILE, index=False)
                             st.rerun()
                     with cols[9]:
@@ -488,7 +508,7 @@ else:
                         st.rerun()
             
             if config_del["status_aktif"]:
-                st.error(f"🚨 **STATUS:** Kewenangan Section Head saat ini sedang dialihkan kepada **{config_del['pjs_nama']}**.")
+                st.error(f"🚨 **STATUS:** Kewenangan Section Head saat ini sedang dibantu / dialihkan kepada **{config_del['pjs_nama']}**.")
         
         st.markdown("<hr>", unsafe_allow_html=True)
         # ---------------------------------
@@ -496,62 +516,59 @@ else:
         df_sh = pd.read_csv(DB_FILE, dtype=str)
         st.subheader("Verifikasi Akhir (Final Approve)")
         
-        if config_del["status_aktif"]:
-            st.info("Anda tidak bisa memproses antrean karena kewenangan sedang dialihkan ke Pjs.")
+        pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
+        if pending_sh.empty:
+            st.info("Tidak ada SPL menunggu verifikasi Section Head.")
         else:
-            pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
-            if pending_sh.empty:
-                st.info("Tidak ada SPL menunggu verifikasi Section Head.")
-            else:
-                st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
-                cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-                cols[0].markdown("**NO**")
-                cols[1].markdown("**Tanggal**")
-                cols[2].markdown("**Nama**")
-                cols[3].markdown("**NRP**")
-                cols[4].markdown("**Shift**")
-                cols[5].markdown("**Jam awal**")
-                cols[6].markdown("**jam Akhir**")
-                cols[7].markdown("**View**")
-                cols[8].markdown("**Approve**")
-                cols[9].markdown("**Tolak**")
-                st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
+            cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+            cols[0].markdown("**NO**")
+            cols[1].markdown("**Tanggal**")
+            cols[2].markdown("**Nama**")
+            cols[3].markdown("**NRP**")
+            cols[4].markdown("**Shift**")
+            cols[5].markdown("**Jam awal**")
+            cols[6].markdown("**jam Akhir**")
+            cols[7].markdown("**View**")
+            cols[8].markdown("**Approve**")
+            cols[9].markdown("**Tolak**")
+            st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
-                for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
-                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-                    cols[0].write(str(i))
-                    try:
-                        t_str = datetime.strptime(row['Tanggal'], "%Y-%m-%d").strftime("%d/%m/%Y")
-                    except:
-                        t_str = row['Tanggal']
-                    cols[1].write(t_str)
-                    cols[2].write(row['Nama'])
-                    cols[3].write(row['NRP'])
-                    cols[4].write(row['Shift'].replace('Shift ', ''))
-                    
-                    jams = row['Jam'].split(' - ')
-                    cols[5].write(jams[0] if len(jams) > 0 else "")
-                    cols[6].write(jams[1] if len(jams) > 1 else "")
-                    
-                    with cols[7]:
-                        with st.popover("👁️"):
-                            display_html_preview(row)
-                                
-                    with cols[8]:
-                        if st.button("Approve", key=f"sh_app_{row['ID']}"):
-                            df_sh.loc[idx, "Status"] = "Final Approved"
-                            df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
-                            df_sh.to_csv(DB_FILE, index=False)
-                            st.rerun()
+            for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+                cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                cols[0].write(str(i))
+                try:
+                    t_str = datetime.strptime(row['Tanggal'], "%Y-%m-%d").strftime("%d/%m/%Y")
+                except:
+                    t_str = row['Tanggal']
+                cols[1].write(t_str)
+                cols[2].write(row['Nama'])
+                cols[3].write(row['NRP'])
+                cols[4].write(row['Shift'].replace('Shift ', ''))
+                
+                jams = row['Jam'].split(' - ')
+                cols[5].write(jams[0] if len(jams) > 0 else "")
+                cols[6].write(jams[1] if len(jams) > 1 else "")
+                
+                with cols[7]:
+                    with st.popover("👁️"):
+                        display_html_preview(row)
                             
-                    with cols[9]:
-                        if st.button("Tolak", key=f"sh_del_{row['ID']}"):
-                            df_sh = df_sh.drop(idx)
-                            df_sh.to_csv(DB_FILE, index=False)
-                            st.rerun()
-                    
-                    st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
+                with cols[8]:
+                    if st.button("Approve", key=f"sh_app_{row['ID']}"):
+                        df_sh.loc[idx, "Status"] = "Final Approved"
+                        df_sh.loc[idx, "Waktu_SH"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                        df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
+                        df_sh.to_csv(DB_FILE, index=False)
+                        st.rerun()
+                        
+                with cols[9]:
+                    if st.button("Tolak", key=f"sh_del_{row['ID']}"):
+                        df_sh = df_sh.drop(idx)
+                        df_sh.to_csv(DB_FILE, index=False)
+                        st.rerun()
+                
+                st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
         st.subheader("Arsip Dokumen Selesai (Siap Unduh)")
         approved_sh = df_sh[df_sh["Status"] == "Final Approved"]
@@ -560,8 +577,12 @@ else:
         else:
             for idx, row in approved_sh.iterrows():
                 col1, col2 = st.columns([3, 1])
+                
+                # Membaca nama bersih untuk di layar dashboard
+                nama_tampil = str(row['Nama_SH']).replace(" (PJS Section Head)", "") if pd.notna(row['Nama_SH']) else 'Haris Abi Wibowo'
+                
                 with col1:
-                    st.write(f"📄 **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui Oleh: {row['Nama_SH'] if pd.notna(row['Nama_SH']) else 'Haris Abi Wibowo'})")
+                    st.write(f"📄 **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui Oleh: {nama_tampil})")
                 with col2:
                     file_pdf = create_pdf(df_sh.loc[idx])
                     with open(file_pdf, "rb") as f:
