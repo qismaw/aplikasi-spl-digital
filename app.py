@@ -31,9 +31,10 @@ div[data-testid="stPopover"] button {
     padding: 0.2rem 0.5rem !important;
 }
 
+/* Membatasi default popover tapi membiarkan div di dalamnya resizable */
 div[data-testid="stPopoverBody"] {
     width: 650px !important;
-    max-width: 90vw !important;
+    max-width: 95vw !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -154,23 +155,25 @@ def create_pdf(row):
     pdf.set_font("Arial", "", 10)
     pdf.cell(40, 10, " NAMA", border=1)
     pdf.cell(150, 10, f" {row['Nama']}", border=1, ln=True)
+    
+    # REVISI LEBAR KOLOM AGAR TOTAL JAM MUAT (Dari 80 & 40 menjadi 70 & 50)
     pdf.cell(40, 10, " NRP/DEPT", border=1)
-    pdf.cell(80, 10, f" {row['NRP']} / {row['Section']}", border=1)
+    pdf.cell(70, 10, f" {row['NRP']} / {row['Section']}", border=1)
     pdf.cell(30, 10, " SHIFT :", border=1)
-    pdf.cell(40, 10, f" {row['Shift']}", border=1, ln=True) 
+    pdf.cell(50, 10, f" {row['Shift']}", border=1, ln=True) 
+    
+    # MENGGABUNGKAN TOTAL LEMBUR KE DALAM KOLOM JAM
+    total_lembur = hitung_total_lembur_str(row['Jam'])
     pdf.cell(40, 10, " TANGGAL :", border=1)
-    pdf.cell(80, 10, f" {row['Tanggal']}", border=1)
+    pdf.cell(70, 10, f" {row['Tanggal']}", border=1)
     pdf.cell(30, 10, " JAM :", border=1)
-    pdf.cell(40, 10, f" {row['Jam']}", border=1, ln=True)
+    pdf.cell(50, 10, f" {row['Jam']} = {total_lembur}", border=1, ln=True)
+    
     pdf.cell(40, 10, " PERUSAHAAN :", border=1)
     pdf.cell(150, 10, f" {row['Perusahaan']}", border=1, ln=True)
     
-    total_lembur = hitung_total_lembur_str(row['Jam'])
-    
-    pdf.cell(120, 10, " Keterangan Lembur :", border="LT")
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(70, 10, f"Total Lembur = {total_lembur} ", border="TR", align="R", ln=True)
-    pdf.set_font("Arial", "", 10)
+    # Keterangan lembur kembali bersih
+    pdf.cell(190, 10, " Keterangan Lembur :", border="LTR", ln=True)
     pdf.multi_cell(190, 10, f" {row['Alasan']}\n\n", border="LBR")
     
     pdf.ln(10)
@@ -232,12 +235,12 @@ def create_pdf(row):
     pdf.output(filename)
     return filename
 
-# Fungsi Preview Digital HTML
+# Fungsi Preview Digital HTML (Bisa Di-Resize)
 def display_html_preview(row):
     total_lembur = hitung_total_lembur_str(row['Jam'])
     
     html_content = f"""
-    <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif;">
+    <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif; resize: both; overflow: auto; min-width: 300px;">
         <div style="border: 1px solid black; padding: 10px; margin-bottom: 10px;">
             <b>PT. Saptaindra Sejati<br>Site Maco</b>
         </div>
@@ -257,7 +260,7 @@ def display_html_preview(row):
                 <td style="border: 1px solid black; padding: 8px;"><b>TANGGAL :</b></td>
                 <td style="border: 1px solid black; padding: 8px;">{row['Tanggal']}</td>
                 <td style="border: 1px solid black; padding: 8px;"><b>JAM :</b></td>
-                <td style="border: 1px solid black; padding: 8px;">{row['Jam']}</td>
+                <td style="border: 1px solid black; padding: 8px;">{row['Jam']} = {total_lembur}</td>
             </tr>
             <tr>
                 <td style="border: 1px solid black; padding: 8px;"><b>PERUSAHAAN :</b></td>
@@ -265,11 +268,7 @@ def display_html_preview(row):
             </tr>
             <tr>
                 <td style="border: 1px solid black; padding: 8px; height: 60px; vertical-align: top;" colspan="4">
-                    <div style="display: flex; justify-content: space-between;">
-                        <b>Keterangan Lembur :</b>
-                        <b>Total Lembur = {total_lembur}</b>
-                    </div>
-                    <br>{row['Alasan']}
+                    <b>Keterangan Lembur :</b><br><br>{row['Alasan']}
                 </td>
             </tr>
         </table>
@@ -392,7 +391,6 @@ elif st.session_state.app_mode == "login":
 # ==========================================
 elif st.session_state.app_mode == "main" and st.session_state.logged_in:
     
-    # --- FITUR EXPANDER GANTI PASSWORD DI SIDEBAR ---
     if st.session_state.role != "Karyawan":
         with st.sidebar:
             with st.expander("🔑 Ganti Password", expanded=False):
