@@ -25,69 +25,70 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   PERBAIKAN FINAL TABEL: DIJAMIN MUNCUL & TIDAK BOCOR
+   PERBAIKAN TABEL: ANTI TUMPANG TINDIH & LEBIH RAPI
    ========================================================== */
+
 @media (max-width: 768px) {
-    /* Kunci layar utama khusus HP agar tidak goyang ke samping */
     body, .stApp { overflow-x: hidden !important; }
 }
 
-/* 1. ISOLASI WADAH TABEL: Hanya kotak yang punya penanda yang kena efek */
+/* Wadah Utama Tabel */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     background-color: rgba(255,255,255,0.03) !important;
     border: 1px solid rgba(255,255,255,0.2) !important;
     border-radius: 8px !important;
-    padding: 10px !important;
+    padding: 5px !important;
     margin-bottom: 20px !important;
-    overflow-x: auto !important; /* Roda geser tabel */
-    -webkit-overflow-scrolling: touch !important;
+    overflow-x: auto !important;
 }
 
-/* 2. BARIS TABEL: Dirapatkan dan diberi garis bawah ala Excel */
+/* Pengaturan Baris */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    min-width: 900px !important; /* Panjang rel tabel standar */
+    min-width: 950px !important; 
     border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-    padding: 8px 0px !important;
+    padding: 12px 0px !important; 
     gap: 0px !important;
     align-items: center !important;
 }
 
-/* 3. KOLOM TABEL: Diatur jaraknya agar tidak renggang */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+/* Hilangkan border bawah pada baris terakhir */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child {
+    border-bottom: none !important;
+}
+
+/* Kolom Tabel */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
     flex: 0 0 auto !important;
-    padding: 0 8px !important;
+    padding: 0 10px !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
-/* 4. UKURAN PRESISI KOLOM (Mencegah teks bolong) */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 40px !important; }  /* NO */
+/* Lebar Kolom Presisi */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 45px !important; }  /* NO */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; } /* Tgl */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 170px !important; } /* Nama */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 80px !important; }  /* NRP */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; } /* Nama */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 85px !important; }  /* NRP */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 70px !important; }  /* Shift */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 70px !important; }  /* Jam Awl */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 70px !important; }  /* Jam Akhr */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 60px !important; }  /* View */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 95px !important; }  /* Approve */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 95px !important; }  /* Tolak */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 80px !important; }  /* Jam Awl */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 80px !important; }  /* Jam Akhr */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 75px !important; }  /* View */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; } /* Approve */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 110px !important; } /* Tolak */
 
-/* 5. TEKS & TOMBOL: Diberi kebebasan agar teks MUNCUL KEMBALI */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p,
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) .stMarkdown {
-    font-size: 14px !important;
-    white-space: normal !important; /* Teks diizinkan muncul utuh */
-    overflow: visible !important;
+/* Teks */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
     margin-bottom: 0 !important;
-    line-height: 1.2 !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
 }
 
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button {
-    padding: 0px 5px !important;
-    font-size: 12px !important;
-    height: 32px !important;
-    min-height: 0 !important;
+/* Header Highlight */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:first-child {
+    background-color: rgba(255,255,255,0.05) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -142,8 +143,6 @@ def load_users():
     if not data:
         default_users = {
             "Bapak Andi (GL 1)": {"password": "andi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
-            "Bapak Budi (GL 2)": {"password": "budi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
-            "Bapak Citra (GL 3)": {"password": "citra123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
             "Section Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
             "Administrator": {"password": "admin123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
         }
@@ -189,7 +188,7 @@ def save_config(config):
 try:
     users_db = load_users()
     LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
-except: LIST_GL = ["Bapak Andi (GL 1)", "Bapak Budi (GL 2)", "Bapak Citra (GL 3)"]
+except: LIST_GL = ["Bapak Andi (GL 1)"]
 
 # ==========================================
 # DATABASE SPL 
@@ -331,7 +330,7 @@ def proses_login(username_key, password_input):
     if user_info["blocked"]:
         st.error(f"🚨 Akun Anda ({username_key}) telah DIBLOKIR!")
         return False
-    if password_input == user_info["password"]:
+    if str(password_input) == str(user_info["password"]):
         user_info["failed_attempts"] = 0
         save_users(users_data)
         return True
@@ -388,7 +387,6 @@ elif st.session_state.app_mode == "login":
         elif role == "Section Head":
             password = st.text_input("Password Section Head", type="password")
             if st.button("Login Sect Head", use_container_width=True):
-                # SUDAH SINKRON DENGAN DATABASE
                 if proses_login("Section Head", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Section Head"
@@ -418,7 +416,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     if st.form_submit_button("Simpan Password"):
                         db_pass = load_users()
                         user_data = db_pass[st.session_state.username]
-                        if pass_lama != user_data["password"]: st.error("Password lama salah!")
+                        if str(pass_lama) != str(user_data["password"]): st.error("Password lama salah!")
                         else:
                             user_data["password"] = pass_baru
                             save_users(db_pass)
@@ -491,8 +489,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         st.subheader("Menunggu Verifikasi Anda")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
-        if pending_gl.empty: 
-            st.info("✅ Saat ini tidak ada antrean SPL baru.")
+        if pending_gl.empty: st.info("✅ Tidak ada antrean SPL baru.")
         else:
             with st.container():
                 st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
@@ -543,15 +540,11 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
             st.warning("👑 **TUGAS PJS SECTION HEAD**")
             pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
-            
-            if pending_sh.empty:
-                st.info("✅ Tidak ada antrean tugas verifikasi PJS untuk saat ini.")
-            else:
+            if not pending_sh.empty:
                 with st.container():
                     st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
                     cols = st.columns(10)
                     for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
-
                     for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
                         cols = st.columns(10)
                         cols[0].write(str(i))
@@ -562,7 +555,6 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                         jams = row['Jam'].split(' - ')
                         cols[5].write(jams[0] if len(jams) > 0 else "")
                         cols[6].write(jams[1] if len(jams) > 1 else "")
-                        
                         with cols[7]:
                             with st.popover("👁️"): display_html_preview(row)
                         with cols[8]:
@@ -615,14 +607,12 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         st.subheader("Verifikasi Akhir (Final Approve)")
         pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
         
-        if pending_sh.empty: 
-            st.info("✅ Belum ada antrean SPL yang masuk untuk di-Approve.")
+        if pending_sh.empty: st.info("✅ Belum ada antrean SPL baru.")
         else:
             with st.container():
                 st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
                 cols = st.columns(10)
                 for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
-
                 for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
                     cols = st.columns(10)
                     cols[0].write(str(i))
@@ -633,14 +623,13 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     jams = row['Jam'].split(' - ')
                     cols[5].write(jams[0] if len(jams) > 0 else "")
                     cols[6].write(jams[1] if len(jams) > 1 else "")
-                    
                     with cols[7]:
                         with st.popover("👁️"): display_html_preview(row)
                     with cols[8]:
                         if st.button("Approve", key=f"sh_app_{row['ID']}"):
                             df_sh.loc[idx, "Status"] = "Final Approved"
                             df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo" 
+                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
                             save_db(df_sh)
                             st.rerun()
                     with cols[9]:
@@ -666,38 +655,64 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
     # --- ADMIN ---
     elif st.session_state.role == "Admin":
         df_admin = get_db()
-        st.subheader("📊 Tabel Database SPL Keseluruhan")
+        st.title("📊 Database SPL Keseluruhan")
         
-        with st.container():
-            tabel_admin = df_admin[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']].copy()
-            tabel_admin.index = range(1, len(tabel_admin) + 1)
-            st.dataframe(tabel_admin, use_container_width=True)
+        # --- KEMBALIKAN FITUR FILTER ---
+        filter_mode = st.radio("Pilih Mode Filter:", ["Semua Data", "Filter Bulan & Tahun", "Filter Tanggal Spesifik"], horizontal=True)
+        df_filtered = df_admin.copy()
+        
+        if filter_mode == "Filter Bulan & Tahun":
+            col_b, col_t = st.columns(2)
+            list_bulan = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+            list_tahun = [str(y) for y in range(2024, 2030)]
+            pilih_bulan = col_b.selectbox("Pilih Bulan", list_bulan, index=get_wib_time().month - 1)
+            pilih_tahun = col_t.selectbox("Pilih Tahun", list_tahun, index=list_tahun.index(str(get_wib_time().year)) if str(get_wib_time().year) in list_tahun else 0)
+            df_filtered = df_filtered[df_filtered['Tanggal'].str.startswith(f"{pilih_tahun}-{pilih_bulan}")]
+        elif filter_mode == "Filter Tanggal Spesifik":
+            tgl_spesifik = st.date_input("Pilih Tanggal", value=get_wib_time().date())
+            df_filtered = df_filtered[df_filtered['Tanggal'] == str(tgl_spesifik)]
             
-        st.markdown("---")
-        st.subheader("📥 Unduh Rekap Data (Excel)")
-        
-        # --- FITUR DOWNLOAD EXCEL (.xlsx) ---
-        try:
+        st.write(f"Menampilkan **{len(df_filtered)}** baris data.")
+
+        # --- TOMBOL DOWNLOAD EXCEL DI ATAS TABEL DENGAN FORMAT SESUAI GAMBAR ---
+        if not df_filtered.empty:
+            excel_df = df_filtered.copy()
+            excel_df.insert(0, 'No.', range(1, len(excel_df) + 1))
+            excel_df['Jam Awal'] = excel_df['Jam'].apply(lambda x: str(x).split(' - ')[0] if ' - ' in str(x) else '')
+            excel_df['Jam Akhir'] = excel_df['Jam'].apply(lambda x: str(x).split(' - ')[1] if ' - ' in str(x) else '')
+            excel_df['Total Lembur (Jam)'] = excel_df['Jam'].apply(hitung_total_lembur_str)
+            
+            # Urutan kolom sesuai image_87be8d.png
+            cols_order = [
+                'No.', 'Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 
+                'Jam Awal', 'Jam Akhir', 'Total Lembur (Jam)', 'Perusahaan', 
+                'Alasan', 'Status', 'Pengawas_Tujuan', 'Waktu_GL', 
+                'Nama_GL', 'Waktu_SH', 'Nama_SH', 'Alasan_Tolak'
+            ]
+            for c in cols_order:
+                if c not in excel_df.columns: excel_df[c] = ""
+            excel_df = excel_df[cols_order]
+
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                tabel_admin.to_excel(writer, index=False, sheet_name='Rekap_SPL')
-        except Exception:
-            output = io.BytesIO()
-            with pd.ExcelWriter(output) as writer:
-                tabel_admin.to_excel(writer, index=False, sheet_name='Rekap_SPL')
+                excel_df.to_excel(writer, index=False, sheet_name='Rekap_SPL')
 
-        st.download_button(
-            label="📊 Download Tabel di Atas (Format .xlsx)",
-            data=output.getvalue(),
-            file_name=f"Rekap_SPL_{get_wib_time().strftime('%d_%m_%Y')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+            st.download_button(
+                label="📥 Download Rekap Excel (.xlsx)",
+                data=output.getvalue(),
+                file_name=f"Rekap_SPL_{get_wib_time().strftime('%d_%m_%Y')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+        # --- TAMPILAN TABEL DASHBOARD ---
+        st.dataframe(df_filtered[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']], use_container_width=True)
         
         st.markdown("---")
         st.subheader("🗂️ Unduh Arsip Dokumen Final (PDF)")
-        approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
-        if approved_admin.empty: st.write("Belum ada dokumen yang selesai.")
-        for idx, row in approved_admin.iterrows():
-            file_pdf = create_pdf(row)
-            with open(file_pdf, "rb") as f:
-                st.download_button(f"📄 Download SPL {row['Nama']} ({row['Tanggal']})", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
+        approved_admin = df_filtered[df_filtered["Status"] == "Final Approved"]
+        if approved_admin.empty: st.write("Belum ada dokumen selesai.")
+        else:
+            for idx, row in approved_admin.iterrows():
+                file_pdf = create_pdf(row)
+                with open(file_pdf, "rb") as f:
+                    st.download_button(f"📄 Download SPL {row['Nama']} ({row['Tanggal']})", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
