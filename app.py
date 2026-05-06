@@ -20,9 +20,47 @@ st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
 <style>
+/* CSS Warna Tombol & Popover View */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
+
+/* ==================================================
+   FIX TAMPILAN TABEL DI HP (BISA GESER KE SAMPING) 
+   ================================================== */
+@media (max-width: 768px) {
+    /* 1. Targetkan HANYA baris yang kolomnya lebih dari 4 (Tabel kita ada 10 kolom). Biarkan form input tetap menumpuk. */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        padding-bottom: 10px; /* Ruang bernapas untuk jari saat geser layar */
+    }
+    
+    /* 2. Lebar dasar kolom tabel agar tulisan tidak tergencet */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"] {
+        min-width: 120px !important;
+        width: auto !important;
+        flex: 0 0 auto !important;
+    }
+    
+    /* 3. Penyesuaian spesifik per kolom agar terlihat rapi */
+    /* Kolom ke-1 (Nomor) dibuat sangat kecil */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(1) {
+        min-width: 40px !important;
+    }
+    /* Kolom ke-5, 6, 7 (Shift & Jam) dibuat sedang */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(5),
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(6),
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(7) {
+        min-width: 80px !important;
+    }
+    /* Kolom ke-8, 9, 10 (Tombol View, Approve, Tolak) menyesuaikan ukuran tombol */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(n+8) {
+        min-width: 100px !important;
+    }
+}
 </style>
 """, unsafe_allow_html=True)
 
