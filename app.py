@@ -10,9 +10,9 @@ import gspread
 from google.oauth2.service_account import Credentials
 
 # ==========================================
-# 🛑 LINK DATABASE GOOGLE SHEETS ANDA 🛑
+# 🛑 ID DATABASE GOOGLE SHEETS ANDA 🛑
 # ==========================================
-URL_GOOGLE_SHEETS = "https://docs.google.com/spreadsheets/d/1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U/edit?gid=0#gid=0"
+SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
 
 # Konfigurasi Halaman & CSS Kustom
@@ -52,20 +52,20 @@ def get_gsheets_client():
         client = gspread.authorize(creds)
         return client
     except Exception as e:
-        st.error(f"Gagal memuat kredensial: {e}")
+        st.error(f"Gagal memuat kredensial dari Streamlit Secrets. Error: {e}")
         st.stop()
 
 def get_worksheet(sheet_name):
     client = get_gsheets_client()
     try:
-        # Menggunakan URL langsung agar robot tidak salah alamat
-        sh = client.open_by_url(URL_GOOGLE_SHEETS)
+        # MENGGUNAKAN ID LANGSUNG AGAR 100% AKURAT
+        sh = client.open_by_key(SHEET_ID)
         try:
             return sh.worksheet(sheet_name)
         except:
             return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
     except Exception as e:
-        st.error(f"Gagal membuka Spreadsheet. Pastikan URL sudah dimasukkan dengan benar di kodingan, dan Anda sudah melakukan Share ke email robot sebagai Editor.")
+        st.error(f"Gagal membuka Spreadsheet. Error Sistem: {e}")
         st.stop()
 
 # ==========================================
