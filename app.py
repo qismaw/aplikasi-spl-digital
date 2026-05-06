@@ -4,7 +4,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 import os
 import time
-import base64
 import json
 import io
 import gspread
@@ -56,15 +55,16 @@ def get_worksheet(sheet_name):
         sh = client.open("Database_SPL_Maco")
         try:
             return sh.worksheet(sheet_name)
-        except gspread.WorksheetNotFound:
+        except:
             return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
     except Exception as e:
-        st.error(f"Gagal membuka Spreadsheet: {e}. Pastikan nama file Google Sheets adalah 'Database_SPL_Maco' dan sudah dibagikan ke email service account.")
+        st.error(f"Gagal membuka Spreadsheet. Pastikan nama file Google Sheets adalah 'Database_SPL_Maco' dan sudah dibagikan ke email robot.")
         st.stop()
 
 # ==========================================
-# DATABASE PENGGUNA (G-SHEETS)
+# DATABASE PENGGUNA (G-SHEETS) DENGAN CACHE
 # ==========================================
+@st.cache_data(ttl=60) # Ingat data selama 60 detik agar tidak kena Limit Google API
 def load_users():
     sheet = get_worksheet("Users")
     data = sheet.get_all_records()
@@ -76,7 +76,12 @@ def load_users():
             "Sect. Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
             "Administrator": {"password": "admin123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
         }
-        save_users(default_users)
+        # Tulis ke sheet (Hanya dijalankan sekali saat kosong)
+        sheet.clear()
+        rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
+        for k, v in default_users.items():
+            rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
+        sheet.update("A1", rows)
         return default_users
     else:
         user_dict = {}
@@ -96,13 +101,12 @@ def save_users(users_data):
     for k, v in users_data.items():
         rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
     sheet.update("A1", rows)
-
-users_db = load_users()
-LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
+    st.cache_data.clear() # Reset ingatan memori setelah ada update
 
 # ==========================================
-# DATABASE SPL (G-SHEETS)
+# DATABASE SPL (G-SHEETS) DENGAN CACHE
 # ==========================================
+@st.cache_data(ttl=15) # Ingat data selama 15 detik agar aman dari Limit Google API
 def get_db():
     sheet = get_worksheet("Data_SPL")
     data = sheet.get_all_records()
@@ -123,16 +127,19 @@ def save_db(df):
     sheet.clear()
     df = df.astype(str)
     sheet.update("A1", [df.columns.values.tolist()] + df.values.tolist())
+    st.cache_data.clear() # Reset ingatan memori setelah data ditambah/diapprove
 
 # ==========================================
-# KONFIGURASI PENDELEGASIAN (G-SHEETS)
+# KONFIGURASI PENDELEGASIAN DENGAN CACHE
 # ==========================================
+@st.cache_data(ttl=60)
 def load_config():
     sheet = get_worksheet("Config")
     data = sheet.get_all_records()
     if not data:
         default_cfg = {"status_aktif": False, "pjs_nama": ""}
-        save_config(default_cfg)
+        sheet.clear()
+        sheet.update("A1", [["status_aktif", "pjs_nama"], [str(default_cfg["status_aktif"]), default_cfg["pjs_nama"]]])
         return default_cfg
     else:
         row = data[0]
@@ -143,6 +150,16 @@ def save_config(config):
     sheet.clear()
     rows = [["status_aktif", "pjs_nama"], [str(config["status_aktif"]), config["pjs_nama"]]]
     sheet.update("A1", rows)
+    st.cache_data.clear()
+
+# ==========================================
+# MUAT DATA UMUM (Hanya dipanggil setelah fungsi didefinisikan)
+# ==========================================
+try:
+    users_db = load_users()
+    LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
+except:
+    LIST_GL = ["Bapak Andi (GL 1)", "Bapak Budi (GL 2)", "Bapak Citra (GL 3)"] # Fallback aman
 
 # ==========================================
 # FUNGSI PENDUKUNG (Hitung Jam & PDF)
@@ -377,6 +394,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             st.session_state.role = ""
             st.session_state.username = ""
             st.session_state.app_mode = "landing"
+            st.cache_data.clear() # Bersihkan memori saat logout
             st.rerun()
     st.write("---")
     
