@@ -19,47 +19,54 @@ st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
 <style>
-/* CSS Warna Tombol */
+/* 1. Warna Tombol & Popover */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
-/* ==================================================
-   KUNCI TABEL HP (GESER SATU KESATUAN UTUH) 
-   ================================================== */
+/* ==========================================================
+   FIX TABEL HP: HANYA TABEL YANG GESER, HALAMAN TETAP DIAM
+   ========================================================== */
 @media (max-width: 768px) {
-    /* 1. Beri roda scroll pada wadah pembungkus tabel */
-    div[data-testid="stVerticalBlock"]:has(div[data-testid="stHorizontalBlock"] > div:nth-child(10)) {
+    /* Pastikan Wadah Utama Aplikasi tidak bisa geser ke samping */
+    .main .block-container {
+        overflow-x: hidden !important;
+    }
+
+    /* Targetkan wadah yang membungkus baris tabel (yg ada 10 kolom) */
+    /* Kita beri izin geser hanya pada blok tabel ini saja */
+    div[data-testid="stVerticalBlock"] > div:has(div[data-testid="stHorizontalBlock"] > div:nth-child(10)) {
         overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        padding-bottom: 15px !important;
-    }
-    
-    /* 2. Paksa setiap baris tabel (yg ada 10 kolom) memanjang 1100px agar tidak turun ke bawah */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        min-width: 1100px !important;
-    }
-    
-    /* 3. Kunci ukuran tiap sel agar Judul & Isi Data LURUS / SINKRON */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"] {
         display: block !important;
-        flex: 0 0 auto !important;
+        width: 100% !important;
+        padding-bottom: 20px !important;
+        border: 1px solid #333; /* Opsional: garis tipis penanda area tabel */
+        border-radius: 5px;
+    }
+
+    /* Paksa isi tabel tetap memanjang ke samping (tidak menumpuk ke bawah) */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) {
+        min-width: 1100px !important; /* Lebar total tabel */
+        flex-wrap: nowrap !important;
+        display: flex !important;
+    }
+
+    /* Kunci lebar kolom agar sejajar persis atas dan bawah */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div {
+        flex: none !important;
     }
     
-    /* Lebar spesifik per kolom (Total 1100px) */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(1) { width: 40px !important; }   /* NO */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(2) { width: 100px !important; }  /* Tanggal */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(3) { width: 180px !important; }  /* Nama */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(4) { width: 90px !important; }   /* NRP */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(5) { width: 80px !important; }   /* Shift */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(6) { width: 80px !important; }   /* Jam Awal */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(7) { width: 80px !important; }   /* Jam Akhir */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(8) { width: 70px !important; }   /* View */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(9) { width: 120px !important; }  /* Approve */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div[data-testid="column"]:nth-child(10){ width: 120px !important; }  /* Tolak */
+    /* Atur lebar presisi per kolom */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(1) { width: 40px !important; }   /* NO */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(2) { width: 110px !important; }  /* Tanggal */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(3) { width: 180px !important; }  /* Nama */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(4) { width: 100px !important; }  /* NRP */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(5) { width: 70px !important; }   /* Shift */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(6) { width: 90px !important; }   /* Jam Awal */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(7) { width: 90px !important; }   /* Jam Akhir */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(8) { width: 60px !important; }   /* View */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(9) { width: 120px !important; }  /* Approve */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(10){ width: 120px !important; }  /* Tolak */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -401,7 +408,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         else: st.title(f"📄 Dashboard {st.session_state.role}")
     with col_logout:
         st.write("") 
-        if st.button("🚪 Keluar", use_container_width=True):
+        if st.button("🚪 Logout", use_container_width=True):
             st.session_state.logged_in = False
             st.session_state.role = ""
             st.session_state.username = ""
@@ -412,7 +419,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
     
     config_del = load_config()
 
-    # --- KARYAWAN ---
+    # --- TAMPILAN KARYAWAN (HANYA VERTIKAL, TIDAK BISA GESER) ---
     if st.session_state.role == "Karyawan":
         with st.form("form_spl", clear_on_submit=True):
             col1, col2 = st.columns(2)
@@ -456,72 +463,22 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     save_db(df)
                     st.success(f"✅ BERHASIL: SPL untuk {nama} terkirim!")
 
-    # --- GL/UH ---
+    # --- TAMPILAN GL/UH (KUNCI TABEL DI DALAM CONTAINER) ---
     elif st.session_state.role == "GL/UH":
         df_gl = get_db()
-        st.subheader("Menunggu Verifikasi Anda (Sebagai GL/UH)")
+        st.subheader("Menunggu Verifikasi Anda")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
-        if pending_gl.empty: st.info("Tidak ada SPL baru untuk Anda saat ini.")
-        else:
-            # TABEL DESAIN ASLI (10 Kolom)
-            st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
-            cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-            for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
-            st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
-
-            for i, (idx, row) in enumerate(pending_gl.iterrows(), 1):
-                cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-                cols[0].write(str(i))
-                cols[1].write(row['Tanggal'])
-                cols[2].write(row['Nama'])
-                cols[3].write(row['NRP'])
-                cols[4].write(row['Shift'].replace('Shift ', ''))
-                jams = row['Jam'].split(' - ')
-                cols[5].write(jams[0] if len(jams) > 0 else "")
-                cols[6].write(jams[1] if len(jams) > 1 else "")
-                
-                with cols[7]:
-                    with st.popover("👁️"): display_html_preview(row)
-                with cols[8]:
-                    if st.button("Approve", key=f"gl_app_{row['ID']}"):
-                        df_gl.loc[idx, "Status"] = "Pending SH"
-                        df_gl.loc[idx, "Waktu_GL"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                        df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
-                        save_db(df_gl)
-                        st.rerun()
-                with cols[9]:
-                    with st.popover("Tolak"):
-                        alasan_tolak = st.text_area("Masukkan Alasan:", key=f"txt_tolak_gl_{row['ID']}")
-                        if st.button("Konfirmasi Tolak", key=f"gl_del_{row['ID']}"):
-                            if not alasan_tolak.strip(): st.error("Alasan wajib diisi!")
-                            else:
-                                df_gl.loc[idx, "Status"] = "Ditolak"
-                                df_gl.loc[idx, "Waktu_GL"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                                df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
-                                df_gl.loc[idx, "Alasan_Tolak"] = alasan_tolak
-                                save_db(df_gl)
-                                st.rerun()
-                st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
-                    
-        st.subheader("Riwayat Pekerjaan")
-        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved") | (df_gl["Status"] == "Ditolak")) & (df_gl["Nama_GL"] == st.session_state.username)]
-        if not history_gl.empty:
-            for idx, row in history_gl.iterrows():
-                if row['Status'] == 'Ditolak': st.error(f"❌ {row['Nama']} ({row['Tanggal']}) - Ditolak")
-                else: st.write(f"✅ {row['Nama']} ({row['Tanggal']}) - {row['Status']}")
-
-        # TUGAS PJS SH
-        if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
-            st.warning("👑 **TUGAS PJS SECTION HEAD**")
-            pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
-            if not pending_sh.empty:
+        # --- MULAI AREA TABEL GESER ---
+        with st.container():
+            if pending_gl.empty: st.info("Tidak ada SPL baru.")
+            else:
                 st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
                 cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
                 for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
                 st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
-                for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+                for i, (idx, row) in enumerate(pending_gl.iterrows(), 1):
                     cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
                     cols[0].write(str(i))
                     cols[1].write(row['Tanggal'])
@@ -535,25 +492,78 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     with cols[7]:
                         with st.popover("👁️"): display_html_preview(row)
                     with cols[8]:
-                        if st.button("Approve", key=f"pjs_app_{row['ID']}"):
-                            df_gl.loc[idx, "Status"] = "Final Approved"
-                            df_gl.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                            df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS)"
+                        if st.button("Approve", key=f"gl_app_{row['ID']}"):
+                            df_gl.loc[idx, "Status"] = "Pending SH"
+                            df_gl.loc[idx, "Waktu_GL"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
+                            df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
                             save_db(df_gl)
                             st.rerun()
                     with cols[9]:
                         with st.popover("Tolak"):
-                            alasan_pjs = st.text_area("Masukkan Alasan:", key=f"txt_tolak_pjs_{row['ID']}")
-                            if st.button("Konfirmasi Tolak", key=f"pjs_del_{row['ID']}"):
-                                if not alasan_pjs.strip(): st.error("Alasan wajib diisi!")
+                            alasan_tolak = st.text_area("Masukkan Alasan:", key=f"txt_tolak_gl_{row['ID']}")
+                            if st.button("Konfirmasi Tolak", key=f"gl_del_{row['ID']}"):
+                                if not alasan_tolak.strip(): st.error("Alasan wajib diisi!")
                                 else:
                                     df_gl.loc[idx, "Status"] = "Ditolak"
-                                    df_gl.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                                    df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS)"
-                                    df_gl.loc[idx, "Alasan_Tolak"] = alasan_pjs
+                                    df_gl.loc[idx, "Waktu_GL"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
+                                    df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
+                                    df_gl.loc[idx, "Alasan_Tolak"] = alasan_tolak
                                     save_db(df_gl)
                                     st.rerun()
                     st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
+        # --- SELESAI AREA TABEL GESER ---
+                    
+        st.subheader("Riwayat Pekerjaan")
+        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved") | (df_gl["Status"] == "Ditolak")) & (df_gl["Nama_GL"] == st.session_state.username)]
+        if not history_gl.empty:
+            for idx, row in history_gl.iterrows():
+                if row['Status'] == 'Ditolak': st.error(f"❌ {row['Nama']} ({row['Tanggal']}) - Ditolak")
+                else: st.write(f"✅ {row['Nama']} ({row['Tanggal']}) - {row['Status']}")
+
+        # TUGAS PJS SH
+        if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
+            st.warning("👑 **TUGAS PJS SECTION HEAD**")
+            pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
+            with st.container():
+                if not pending_sh.empty:
+                    st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
+                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                    for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
+                    st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+
+                    for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+                        cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                        cols[0].write(str(i))
+                        cols[1].write(row['Tanggal'])
+                        cols[2].write(row['Nama'])
+                        cols[3].write(row['NRP'])
+                        cols[4].write(row['Shift'].replace('Shift ', ''))
+                        jams = row['Jam'].split(' - ')
+                        cols[5].write(jams[0] if len(jams) > 0 else "")
+                        cols[6].write(jams[1] if len(jams) > 1 else "")
+                        
+                        with cols[7]:
+                            with st.popover("👁️"): display_html_preview(row)
+                        with cols[8]:
+                            if st.button("Approve", key=f"pjs_app_{row['ID']}"):
+                                df_gl.loc[idx, "Status"] = "Final Approved"
+                                df_gl.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
+                                df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS)"
+                                save_db(df_gl)
+                                st.rerun()
+                        with cols[9]:
+                            with st.popover("Tolak"):
+                                alasan_pjs = st.text_area("Masukkan Alasan:", key=f"txt_tolak_pjs_{row['ID']}")
+                                if st.button("Konfirmasi Tolak", key=f"pjs_del_{row['ID']}"):
+                                    if not alasan_pjs.strip(): st.error("Alasan wajib diisi!")
+                                    else:
+                                        df_gl.loc[idx, "Status"] = "Ditolak"
+                                        df_gl.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
+                                        df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS)"
+                                        df_gl.loc[idx, "Alasan_Tolak"] = alasan_pjs
+                                        save_db(df_gl)
+                                        st.rerun()
+                        st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
                                         
             history_pjs = df_gl[(df_gl["Status"] == "Final Approved") & (df_gl["Nama_SH"] == f"{st.session_state.username} (PJS)")]
             for idx, row in history_pjs.iterrows():
@@ -584,46 +594,48 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         df_sh = get_db()
         st.subheader("Verifikasi Akhir (Final Approve)")
         pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
-        if pending_sh.empty: st.info("Tidak ada antrean SPL.")
-        else:
-            st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
-            cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-            for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
-            st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
-
-            for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+        
+        with st.container():
+            if pending_sh.empty: st.info("Tidak ada antrean SPL.")
+            else:
+                st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
                 cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
-                cols[0].write(str(i))
-                cols[1].write(row['Tanggal'])
-                cols[2].write(row['Nama'])
-                cols[3].write(row['NRP'])
-                cols[4].write(row['Shift'].replace('Shift ', ''))
-                jams = row['Jam'].split(' - ')
-                cols[5].write(jams[0] if len(jams) > 0 else "")
-                cols[6].write(jams[1] if len(jams) > 1 else "")
-                
-                with cols[7]:
-                    with st.popover("👁️"): display_html_preview(row)
-                with cols[8]:
-                    if st.button("Approve", key=f"sh_app_{row['ID']}"):
-                        df_sh.loc[idx, "Status"] = "Final Approved"
-                        df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                        df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
-                        save_db(df_sh)
-                        st.rerun()
-                with cols[9]:
-                    with st.popover("Tolak"):
-                        alasan_sh = st.text_area("Masukkan Alasan:", key=f"txt_tolak_sh_{row['ID']}")
-                        if st.button("Konfirmasi Tolak", key=f"sh_del_{row['ID']}"):
-                            if not alasan_sh.strip(): st.error("Alasan wajib diisi!")
-                            else:
-                                df_sh.loc[idx, "Status"] = "Ditolak"
-                                df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                                df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
-                                df_sh.loc[idx, "Alasan_Tolak"] = alasan_sh
-                                save_db(df_sh)
-                                st.rerun()
-                st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
+                for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
+                st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
+
+                for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                    cols[0].write(str(i))
+                    cols[1].write(row['Tanggal'])
+                    cols[2].write(row['Nama'])
+                    cols[3].write(row['NRP'])
+                    cols[4].write(row['Shift'].replace('Shift ', ''))
+                    jams = row['Jam'].split(' - ')
+                    cols[5].write(jams[0] if len(jams) > 0 else "")
+                    cols[6].write(jams[1] if len(jams) > 1 else "")
+                    
+                    with cols[7]:
+                        with st.popover("👁️"): display_html_preview(row)
+                    with cols[8]:
+                        if st.button("Approve", key=f"sh_app_{row['ID']}"):
+                            df_sh.loc[idx, "Status"] = "Final Approved"
+                            df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
+                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
+                            save_db(df_sh)
+                            st.rerun()
+                    with cols[9]:
+                        with st.popover("Tolak"):
+                            alasan_sh = st.text_area("Masukkan Alasan:", key=f"txt_tolak_sh_{row['ID']}")
+                            if st.button("Konfirmasi Tolak", key=f"sh_del_{row['ID']}"):
+                                if not alasan_sh.strip(): st.error("Alasan wajib diisi!")
+                                else:
+                                    df_sh.loc[idx, "Status"] = "Ditolak"
+                                    df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
+                                    df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
+                                    df_sh.loc[idx, "Alasan_Tolak"] = alasan_sh
+                                    save_db(df_sh)
+                                    st.rerun()
+                    st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
         st.subheader("Arsip Dokumen Selesai")
         approved_sh = df_sh[df_sh["Status"] == "Final Approved"]
@@ -637,9 +649,10 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         df_admin = get_db()
         st.subheader("📊 Tabel Database SPL Keseluruhan")
         
-        tabel_admin = df_admin[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']].copy()
-        tabel_admin.index = range(1, len(tabel_admin) + 1)
-        st.dataframe(tabel_admin, use_container_width=True)
+        with st.container():
+            tabel_admin = df_admin[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']].copy()
+            tabel_admin.index = range(1, len(tabel_admin) + 1)
+            st.dataframe(tabel_admin, use_container_width=True)
         
         st.markdown("---")
         st.subheader("🗂️ Unduh Arsip PDF Selesai")
