@@ -19,13 +19,13 @@ st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
 <style>
-/* 1. Warna Tombol & Popover Umum */
+/* 1. Warna Tombol Umum */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   STYLING TABEL: ANTI TUMPANG TINDIH & LEBIH RAPI
+   PERBAIKAN TABEL: ANTI TUMPANG TINDIH & LEBIH RAPI
    ========================================================== */
 @media (max-width: 768px) {
     body, .stApp { overflow-x: hidden !important; }
@@ -129,8 +129,7 @@ def safe_update(sheet, data, range_name="A1"):
 def load_users():
     sheet = get_worksheet("Users")
     data = sheet.get_all_records()
-    if not data:
-        return {}
+    if not data: return {}
     user_dict = {}
     for row in data:
         user_dict[str(row["Username"])] = {"password": str(row["Password"]), "failed_attempts": int(row["Gagal"]), "blocked": str(row["Blocked"]).lower() == "true", "role": str(row["Role"])}
@@ -148,8 +147,7 @@ def save_users(users_data):
 def load_config():
     sheet = get_worksheet("Config")
     data = sheet.get_all_records()
-    if not data:
-        return {"status_aktif": False, "pjs_nama": ""}
+    if not data: return {"status_aktif": False, "pjs_nama": ""}
     row = data[0]
     return {"status_aktif": str(row["status_aktif"]).lower() == "true", "pjs_nama": str(row["pjs_nama"])}
 
@@ -308,11 +306,10 @@ def proses_login(username_key, password_input):
         return True
     elif password_input != "":
         user_info["failed_attempts"] += 1
-        sisa = 3 - user_info["failed_attempts"]
         if user_info["failed_attempts"] >= 3:
             user_info["blocked"] = True
             st.error(f"🚨 PERINGATAN: Sandi salah 3x. Akun {username_key} DIBLOKIR!")
-        else: st.error(f"❌ Sandi Salah! Sisa percobaan Anda: {sisa} kali lagi.")
+        else: st.error(f"❌ Sandi Salah! Percobaan: {user_info['failed_attempts']}/3")
         save_users(users_data)
     return False
 
@@ -347,12 +344,9 @@ elif st.session_state.app_mode == "login":
     with col_l2:
         role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
         if role != "Pilih...":
-            if role == "GL/UH":
-                target_user = st.selectbox("Pilih Nama Anda", LIST_GL)
-            elif role == "Section Head":
-                target_user = "Section Head"
-            else:
-                target_user = "Administrator"
+            if role == "GL/UH": target_user = st.selectbox("Pilih Nama Anda", LIST_GL)
+            elif role == "Section Head": target_user = "Section Head"
+            else: target_user = "Administrator"
             
             pwd = st.text_input("Password", type="password")
             if st.button("LOGIN", use_container_width=True):
@@ -369,8 +363,7 @@ elif st.session_state.app_mode == "login":
 elif st.session_state.app_mode == "main" and st.session_state.logged_in:
     col_title, col_logout = st.columns([8, 2])
     with col_title:
-        if st.session_state.role == "Karyawan": st.title("📄 Pengisian Form SPL")
-        else: st.title(f"📄 Dashboard {st.session_state.role}")
+        st.title(f"📄 Dashboard {st.session_state.role}" if st.session_state.role != "Karyawan" else "📄 Pengisian Form SPL")
     with col_logout:
         st.write("") 
         if st.button("🚪 Logout", use_container_width=True):
@@ -387,62 +380,55 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
     # --- KARYAWAN ---
     if st.session_state.role == "Karyawan":
         with st.form("form_spl", clear_on_submit=True):
-            col1, col2 = st.columns(2)
-            nama = col1.text_input("Nama Karyawan *")
-            nrp = col2.text_input("NRP *") 
-            col_sec, col_per = st.columns(2)
-            section = col_sec.selectbox("Section", ["Logistik"]) 
-            perusahaan = col_per.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa"])
-            col_tgl, col_shift = st.columns(2)
-            tgl = col_tgl.date_input("Tanggal", value=get_wib_time().date(), disabled=True)
-            shift = col_shift.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
-            pengawas_tujuan = st.selectbox("Pengawas (GL) Yang Bertugas", LIST_GL)
-            
+            c1, c2 = st.columns(2)
+            nama = c1.text_input("Nama Karyawan *")
+            nrp = c2.text_input("NRP *") 
+            cs, cp = st.columns(2)
+            section = cs.selectbox("Section", ["Logistik"]) 
+            perusahaan = cp.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa"])
+            ct, ch = st.columns(2)
+            tgl = ct.date_input("Tanggal", value=get_wib_time().date(), disabled=True)
+            shift = ch.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
+            pengawas = st.selectbox("Pengawas (GL) Yang Bertugas", LIST_GL)
             st.markdown("**Waktu Lembur:**")
-            col_jam_awal, col_jam_akhir = st.columns(2)
+            cj1, cj2 = st.columns(2)
             list_jam = [f"{i:02d}" for i in range(24)]
             list_menit = [f"{i:02d}" for i in range(60)]
-            with col_jam_awal:
-                c1, c2 = st.columns(2)
-                jam_a = c1.selectbox("Jam Mulai", list_jam)
-                menit_a = c2.selectbox("Menit Mulai", list_menit)
-            with col_jam_akhir:
-                c3, c4 = st.columns(2)
-                jam_s = c3.selectbox("Jam Selesai", list_jam)
-                menit_s = c4.selectbox("Menit Selesai", list_menit)
-            
+            with cj1:
+                ja_c1, ja_c2 = st.columns(2)
+                jam_a = ja_c1.selectbox("Jam Mulai", list_jam)
+                menit_a = ja_c2.selectbox("Menit Mulai", list_menit)
+            with cj2:
+                jk_c3, jk_c4 = st.columns(2)
+                jam_k = jk_c3.selectbox("Jam Selesai", list_jam)
+                menit_k = jk_c4.selectbox("Menit Selesai", list_menit)
             alasan = st.text_area("Keterangan Lembur *")
-            submitted = st.form_submit_button("Kirim Pengajuan Lembur")
-            
-            if submitted:
-                if not nama.strip() or not nrp.strip() or not alasan.strip(): st.error("⚠️ GAGAL: Nama, NRP, Keterangan wajib diisi!")
+            if st.form_submit_button("Kirim Pengajuan Lembur"):
+                if not nama.strip() or not nrp.strip() or not alasan.strip(): st.error("⚠️ Nama, NRP, Keterangan wajib diisi!")
                 else:
                     df = get_db()
-                    new_id = str(int(time.time()))
                     new_data = {
-                        "ID": new_id, "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
-                        "Jam": f"{jam_a}:{menit_a} - {jam_s}:{menit_s}", "Perusahaan": perusahaan, "Alasan": alasan, 
-                        "Pengawas_Tujuan": pengawas_tujuan, "Status": "Pending GL", "Waktu_GL": "", "Nama_GL": "", "Waktu_SH": "", "Nama_SH": "", "Alasan_Tolak": ""
+                        "ID": str(int(time.time())), "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
+                        "Jam": f"{jam_a}:{menit_a} - {jam_k}:{menit_k}", "Perusahaan": perusahaan, "Alasan": alasan, 
+                        "Pengawas_Tujuan": pengawas, "Status": "Pending GL", "Waktu_GL": "", "Nama_GL": "", "Waktu_SH": "", "Nama_SH": "", "Alasan_Tolak": ""
                     }
                     df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
                     save_db(df)
-                    st.success(f"✅ BERHASIL: SPL untuk {nama} terkirim!")
+                    st.success(f"✅ Berhasil terkirim!")
 
     # --- GL/UH ---
     elif st.session_state.role == "GL/UH":
         df_gl = get_db()
         st.subheader("Menunggu Verifikasi Anda")
-        pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
-        
-        if pending_gl.empty: st.info("✅ Tidak ada antrean SPL baru.")
+        pending = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
+        if pending.empty: st.info("Tidak ada SPL baru.")
         else:
             with st.container():
                 st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
                 cols = st.columns(10)
                 titles = ["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]
-                for idx, t in enumerate(titles): cols[idx].markdown(t)
-
-                for i, (idx, row) in enumerate(pending_gl.iterrows(), 1):
+                for i, t in enumerate(titles): cols[i].markdown(t)
+                for i, (idx, row) in enumerate(pending.iterrows(), 1):
                     cols = st.columns(10)
                     cols[0].write(str(i))
                     cols[1].write(row['Tanggal'])
@@ -455,214 +441,106 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     with cols[7]:
                         with st.popover("👁️"): display_html_preview(row)
                     with cols[8]:
-                        if st.button("Approve", key=f"gl_app_{row['ID']}"):
-                            df_gl.loc[idx, "Status"] = "Pending SH"
-                            df_gl.loc[idx, "Waktu_GL"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                            df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
+                        if st.button("Approve", key=f"gl_ap_{row['ID']}"):
+                            df_gl.loc[idx, ["Status", "Waktu_GL", "Nama_GL"]] = ["Pending SH", get_wib_time().strftime("%Y-%m-%d %H:%M"), st.session_state.username]
                             save_db(df_gl)
                             st.rerun()
                     with cols[9]:
                         with st.popover("Tolak"):
-                            alasan_tolak = st.text_area("Masukkan Alasan:", key=f"txt_tolak_gl_{row['ID']}")
-                            if st.button("Konfirmasi Tolak", key=f"gl_del_{row['ID']}"):
-                                if not alasan_tolak.strip(): st.error("Alasan wajib diisi!")
+                            txt = st.text_area("Alasan:", key=f"t_gl_{row['ID']}")
+                            if st.button("Konfirmasi", key=f"gl_rj_{row['ID']}"):
+                                if not txt.strip(): st.error("Wajib diisi!")
                                 else:
-                                    df_gl.loc[idx, "Status"] = "Ditolak"
-                                    df_gl.loc[idx, "Waktu_GL"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                                    df_gl.loc[idx, "Nama_GL"] = st.session_state.username 
-                                    df_gl.loc[idx, "Alasan_Tolak"] = alasan_tolak
+                                    df_gl.loc[idx, ["Status", "Waktu_GL", "Nama_GL", "Alasan_Tolak"]] = ["Ditolak", get_wib_time().strftime("%Y-%m-%d %H:%M"), st.session_state.username, txt]
                                     save_db(df_gl)
                                     st.rerun()
-                    
-        st.subheader("Riwayat Pekerjaan")
-        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved") | (df_gl["Status"] == "Ditolak")) & (df_gl["Nama_GL"] == st.session_state.username)]
-        if not history_gl.empty:
-            for idx, row in history_gl.iterrows():
-                if row['Status'] == 'Ditolak': st.error(f"❌ {row['Nama']} ({row['Tanggal']}) - Ditolak")
-                else: st.write(f"✅ {row['Nama']} ({row['Tanggal']}) - {row['Status']}")
-
-        # TUGAS PJS SH
-        if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
-            st.warning("👑 **TUGAS PJS SECTION HEAD**")
-            pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
-            if not pending_sh.empty:
-                with st.container():
-                    st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
-                    cols = st.columns(10)
-                    titles = ["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]
-                    for idx, t in enumerate(titles): cols[idx].markdown(t)
-                    for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
-                        cols = st.columns(10)
-                        cols[0].write(str(i))
-                        cols[1].write(row['Tanggal'])
-                        cols[2].write(row['Nama'])
-                        cols[3].write(row['NRP'])
-                        cols[4].write(row['Shift'].replace('Shift ', ''))
-                        jams = row['Jam'].split(' - ')
-                        cols[5].write(jams[0] if len(jams) > 0 else "")
-                        cols[6].write(jams[1] if len(jams) > 1 else "")
-                        with cols[7]:
-                            with st.popover("👁️"): display_html_preview(row)
-                        with cols[8]:
-                            if st.button("Approve", key=f"pjs_app_{row['ID']}"):
-                                df_gl.loc[idx, "Status"] = "Final Approved"
-                                df_gl.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                                df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS)"
-                                save_db(df_gl)
-                                st.rerun()
-                        with cols[9]:
-                            with st.popover("Tolak"):
-                                alasan_pjs = st.text_area("Masukkan Alasan:", key=f"txt_tolak_pjs_{row['ID']}")
-                                if st.button("Konfirmasi Tolak", key=f"pjs_del_{row['ID']}"):
-                                    if not alasan_pjs.strip(): st.error("Alasan wajib diisi!")
-                                    else:
-                                        df_gl.loc[idx, "Status"] = "Ditolak"
-                                        df_gl.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                                        df_gl.loc[idx, "Nama_SH"] = f"{st.session_state.username} (PJS)"
-                                        df_gl.loc[idx, "Alasan_Tolak"] = alasan_pjs
-                                        save_db(df_gl)
-                                        st.rerun()
-                                        
-            history_pjs = df_gl[(df_gl["Status"] == "Final Approved") & (df_gl["Nama_SH"] == f"{st.session_state.username} (PJS)")]
-            for idx, row in history_pjs.iterrows():
-                file_pdf = create_pdf(row)
-                with open(file_pdf, "rb") as f:
-                    st.download_button(f"📄 Download SPL {row['Nama']}", f, file_name=file_pdf, key=f"dl_pjs_{row['ID']}")
 
     # --- SECTION HEAD ---
     elif st.session_state.role == "Section Head":
-        with st.expander("⚙️ PENGATURAN DELEGASI", expanded=config_del["status_aktif"]):
-            col_d1, col_d2 = st.columns(2)
-            with col_d1: pjs_pilihan = st.selectbox("Pilih Pjs:", LIST_GL)
-            with col_d2:
-                if not config_del["status_aktif"]:
-                    if st.button("🚀 Aktifkan Delegasi"):
-                        config_del["status_aktif"] = True
-                        config_del["pjs_nama"] = pjs_pilihan
-                        save_config(config_del)
-                        st.rerun()
-                else:
-                    if st.button("🛑 Cabut Delegasi"):
-                        config_del["status_aktif"] = False
-                        config_del["pjs_nama"] = ""
-                        save_config(config_del)
-                        st.rerun()
-            if config_del["status_aktif"]: st.error(f"Delegasi Aktif ke: {config_del['pjs_nama']}")
-
         df_sh = get_db()
-        st.subheader("Verifikasi Akhir (Final Approve)")
+        st.subheader("Verifikasi Akhir")
         pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
-        
-        if pending_sh.empty: st.info("✅ Belum ada antrean SPL baru.")
+        if pending_sh.empty: st.info("Tidak ada antrean.")
         else:
             with st.container():
                 st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
                 cols = st.columns(10)
                 titles = ["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]
-                for idx, t in enumerate(titles): cols[idx].markdown(t)
+                for i, t in enumerate(titles): cols[i].markdown(t)
                 for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
                     cols = st.columns(10)
-                    cols[0].write(str(i))
-                    cols[1].write(row['Tanggal'])
-                    cols[2].write(row['Nama'])
-                    cols[3].write(row['NRP'])
+                    cols[0].write(str(i)); cols[1].write(row['Tanggal']); cols[2].write(row['Nama']); cols[3].write(row['NRP'])
                     cols[4].write(row['Shift'].replace('Shift ', ''))
-                    jams = row['Jam'].split(' - ')
-                    cols[5].write(jams[0] if len(jams) > 0 else "")
-                    cols[6].write(jams[1] if len(jams) > 1 else "")
+                    jams = row['Jam'].split(' - '); cols[5].write(jams[0]); cols[6].write(jams[1])
                     with cols[7]:
                         with st.popover("👁️"): display_html_preview(row)
                     with cols[8]:
-                        if st.button("Approve", key=f"sh_app_{row['ID']}"):
-                            df_sh.loc[idx, "Status"] = "Final Approved"
-                            df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
+                        if st.button("Approve", key=f"sh_ap_{row['ID']}"):
+                            df_sh.loc[idx, ["Status", "Waktu_SH", "Nama_SH"]] = ["Final Approved", get_wib_time().strftime("%Y-%m-%d %H:%M"), "Haris Abi Wibowo"]
                             save_db(df_sh)
                             st.rerun()
                     with cols[9]:
                         with st.popover("Tolak"):
-                            alasan_sh = st.text_area("Masukkan Alasan:", key=f"txt_tolak_sh_{row['ID']}")
-                            if st.button("Konfirmasi Tolak", key=f"sh_del_{row['ID']}"):
-                                if not alasan_sh.strip(): st.error("Alasan wajib diisi!")
+                            txt = st.text_area("Alasan:", key=f"t_sh_{row['ID']}")
+                            if st.button("Konfirmasi", key=f"sh_rj_{row['ID']}"):
+                                if not txt.strip(): st.error("Wajib!")
                                 else:
-                                    df_sh.loc[idx, "Status"] = "Ditolak"
-                                    df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                                    df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
-                                    df_sh.loc[idx, "Alasan_Tolak"] = alasan_sh
+                                    df_sh.loc[idx, ["Status", "Waktu_SH", "Nama_SH", "Alasan_Tolak"]] = ["Ditolak", get_wib_time().strftime("%Y-%m-%d %H:%M"), "Haris Abi Wibowo", txt]
                                     save_db(df_sh)
                                     st.rerun()
-
-        st.subheader("Arsip Dokumen Selesai")
-        approved_sh = df_sh[df_sh["Status"] == "Final Approved"]
-        for idx, row in approved_sh.iterrows():
-            file_pdf = create_pdf(row)
-            with open(file_pdf, "rb") as f:
-                st.download_button(f"📄 Download SPL {row['Nama']}", f, file_name=file_pdf, key=f"dl_sh_{row['ID']}")
+        st.subheader("Arsip Selesai")
+        app_sh = df_sh[df_sh["Status"] == "Final Approved"]
+        for _, r in app_sh.iterrows():
+            f_pdf = create_pdf(r)
+            with open(f_pdf, "rb") as f: st.download_button(f"📄 Download SPL {r['Nama']}", f, file_name=f_pdf, key=f"dl_{r['ID']}")
 
     # --- ADMIN ---
     elif st.session_state.role == "Admin":
         df_admin = get_db()
-        st.title("📊 Database SPL Keseluruhan")
+        st.subheader("📊 Database SPL Keseluruhan")
         
         # --- FILTER SUPER LENGKAP ---
-        filter_mode = st.radio("Pilih Mode Filter:", ["Semua Data", "Tanggal", "Bulan", "Tahun", "Range Tanggal"], horizontal=True)
-        df_filtered = df_admin.copy()
-        
-        if filter_mode == "Tanggal":
-            tgl_pick = st.date_input("Pilih Tanggal", value=get_wib_time().date())
-            df_filtered = df_filtered[df_filtered['Tanggal'] == str(tgl_pick)]
-        elif filter_mode == "Bulan":
-            list_bln = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-            pilih_bln = st.selectbox("Pilih Bulan", list_bln, index=get_wib_time().month - 1)
-            df_filtered = df_filtered[df_filtered['Tanggal'].str.contains(f"-{pilih_bln}-")]
-        elif filter_mode == "Tahun":
-            list_thn = [str(y) for y in range(2024, 2031)]
-            pilih_thn = st.selectbox("Pilih Tahun", list_thn, index=list_thn.index(str(get_wib_time().year)) if str(get_wib_time().year) in list_thn else 0)
-            df_filtered = df_filtered[df_filtered['Tanggal'].str.startswith(pilih_thn)]
-        elif filter_mode == "Range Tanggal":
-            col_r1, col_r2 = st.columns(2)
-            t_mulai = col_r1.date_input("Mulai", value=get_wib_time().date() - timedelta(days=7))
-            t_akhir = col_r2.date_input("Sampai", value=get_wib_time().date())
-            df_filtered = df_filtered[(df_filtered['Tanggal'] >= str(t_mulai)) & (df_filtered['Tanggal'] <= str(t_akhir))]
+        f_mode = st.radio("Pilih Mode Filter:", ["Semua Data", "Tanggal", "Bulan", "Tahun", "Range Tanggal"], horizontal=True)
+        df_f = df_admin.copy()
+        if f_mode == "Tanggal":
+            d_pick = st.date_input("Pilih Tanggal", value=get_wib_time().date())
+            df_f = df_f[df_f['Tanggal'] == str(d_pick)]
+        elif f_mode == "Bulan":
+            bln = ["01","02","03","04","05","06","07","08","09","10","11","12"]
+            p_bln = st.selectbox("Bulan", bln, index=get_wib_time().month-1)
+            df_f = df_f[df_f['Tanggal'].str.contains(f"-{p_bln}-")]
+        elif f_mode == "Tahun":
+            thn = [str(y) for y in range(2024, 2031)]
+            p_thn = st.selectbox("Tahun", thn, index=thn.index(str(get_wib_time().year)) if str(get_wib_time().year) in thn else 0)
+            df_f = df_f[df_f['Tanggal'].str.startswith(p_thn)]
+        elif f_mode == "Range Tanggal":
+            r1, r2 = st.columns(2)
+            d1 = r1.date_input("Mulai", value=get_wib_time().date()-timedelta(days=7))
+            d2 = r2.date_input("Sampai", value=get_wib_time().date())
+            df_f = df_f[(df_f['Tanggal'] >= str(d1)) & (df_f['Tanggal'] <= str(d2))]
+
+        # --- EXCEL DOWNLOAD (URUTAN image_874655.png) ---
+        if not df_f.empty:
+            ex_df = df_f.copy()
+            ex_df.insert(0, 'No.', range(1, len(ex_df)+1))
+            ex_df['Jam Awal'] = ex_df['Jam'].apply(lambda x: str(x).split(' - ')[0] if ' - ' in str(x) else '')
+            ex_df['Jam Akhir'] = ex_df['Jam'].apply(lambda x: str(x).split(' - ')[1] if ' - ' in str(x) else '')
+            ex_df['Total Lembur (Jam)'] = ex_df['Jam'].apply(hitung_total_lembur_str)
             
-        st.write(f"Menampilkan **{len(df_filtered)}** baris data.")
+            c_ord = ['No.', 'Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam Awal', 'Jam Akhir', 'Total Lembur (Jam)', 'Perusahaan', 'Alasan', 'Status', 'Pengawas_Tujuan', 'Waktu_GL', 'Nama_GL', 'Waktu_SH', 'Nama_SH', 'Alasan_Tolak']
+            for c in c_ord: 
+                if c not in ex_df.columns: ex_df[c] = ""
+            ex_df = ex_df[c_ord]
 
-        # --- TOMBOL DOWNLOAD EXCEL (image_87be8d.png) ---
-        if not df_filtered.empty:
-            excel_df = df_filtered.copy()
-            excel_df.insert(0, 'No.', range(1, len(excel_df) + 1))
-            excel_df['Jam Awal'] = excel_df['Jam'].apply(lambda x: str(x).split(' - ')[0] if ' - ' in str(x) else '')
-            excel_df['Jam Akhir'] = excel_df['Jam'].apply(lambda x: str(x).split(' - ')[1] if ' - ' in str(x) else '')
-            excel_df['Total Lembur (Jam)'] = excel_df['Jam'].apply(hitung_total_lembur_str)
-            
-            cols_order = [
-                'No.', 'Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 
-                'Jam Awal', 'Jam Akhir', 'Total Lembur (Jam)', 'Perusahaan', 
-                'Alasan', 'Status', 'Pengawas_Tujuan', 'Waktu_GL', 
-                'Nama_GL', 'Waktu_SH', 'Nama_SH', 'Alasan_Tolak'
-            ]
-            for c in cols_order:
-                if c not in excel_df.columns: excel_df[c] = ""
-            excel_df = excel_df[cols_order]
+            out = io.BytesIO()
+            with pd.ExcelWriter(out, engine='openpyxl') as wr: ex_df.to_excel(wr, index=False, sheet_name='Rekap')
+            st.download_button(label="📥 Download Excel (.xlsx)", data=out.getvalue(), file_name=f"Rekap_{get_wib_time().strftime('%d%m%Y')}.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                excel_df.to_excel(writer, index=False, sheet_name='Rekap_SPL')
-
-            st.download_button(
-                label="📥 Download Rekap Excel (.xlsx)",
-                data=output.getvalue(),
-                file_name=f"Rekap_SPL_{get_wib_time().strftime('%d_%m_%Y')}.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-
-        # --- TAMPILAN TABEL DASHBOARD (image_87a3ee.png) ---
-        st.dataframe(df_filtered[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']], use_container_width=True)
-        
+        # --- TAMPILAN DASHBOARD (image_87a3ee.png) ---
+        st.dataframe(df_f[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']], use_container_width=True)
         st.markdown("---")
-        st.subheader("🗂️ Unduh Arsip PDF")
-        approved_admin = df_filtered[df_filtered["Status"] == "Final Approved"]
-        for idx, row in approved_admin.iterrows():
-            file_pdf = create_pdf(row)
-            with open(file_pdf, "rb") as f:
-                st.download_button(f"📄 Download SPL {row['Nama']} ({row['Tanggal']})", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
+        st.subheader("🗂️ Arsip PDF")
+        app_adm = df_f[df_f["Status"] == "Final Approved"]
+        for _, r in app_adm.iterrows():
+            f_pdf = create_pdf(r)
+            with open(f_pdf, "rb") as f: st.download_button(f"📄 Download SPL {r['Nama']} ({r['Tanggal']})", f, file_name=f_pdf, key=f"dl_adm_{r['ID']}")
