@@ -25,7 +25,7 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   ISOLASI KETAT TABEL HP (LEBIH KOMPAK & TIDAK TERLALU LEBAR)
+   ISOLASI KETAT TABEL HP (SANGAT PADAT, RAPAT & SEMPIT)
    ========================================================== */
 @media (max-width: 768px) {
     /* MENGUNCI TOTAL SELURUH HALAMAN AGAR TIDAK BISA GESER */
@@ -33,7 +33,7 @@ div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !imp
         overflow-x: hidden !important;
     }
 
-    /* MENGISOLASI WADAH TABEL */
+    /* WADAH TABEL GESER */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
         overflow-x: auto !important;
         max-width: 100vw !important;
@@ -42,45 +42,50 @@ div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !imp
         display: block !important;
     }
 
-    /* MEMANJANGKAN ISI TABEL MENJADI 700px (SANGAT KOMPAK) */
+    /* MEMANJANGKAN ISI TABEL (DIPERKECIL JADI HANYA 560px) */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        min-width: 700px !important; /* <--- Diperkecil agar tidak perlu geser kejauhan */
+        min-width: 560px !important; /* <--- Sangat sempit */
+        width: max-content !important;
         display: flex !important;
-        align-items: center !important; /* Teks & Tombol sejajar vertikal */
+        align-items: center !important; 
+        gap: 0px !important; /* <--- Membuang jarak spasi renggang bawaan Streamlit */
     }
 
-    /* MENGATUR LEBAR KOLOM AGAR RAPI (TIDAK KEBESARAN) */
+    /* MENGUNCI KOLOM AGAR TIDAK MELAR (Rapat) */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
-        flex: 1 1 0% !important;
-        width: auto !important;
-        min-width: 0 !important;
-        padding: 0 3px !important; /* Jarak dirapatkan */
+        flex: 0 0 auto !important; /* <--- Mematikan sifat melar */
+        padding: 0 3px !important; /* Sangat mepet antar kolom */
     }
     
-    /* Ukuran spesifik kolom yang DIPERKECIL (Total ~700px) */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { flex: 0 0 35px !important; }  /* NO */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { flex: 0 0 85px !important; }  /* Tgl */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { flex: 0 0 120px !important; } /* Nama */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { flex: 0 0 60px !important; }  /* NRP */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { flex: 0 0 55px !important; }  /* Shift */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { flex: 0 0 50px !important; }  /* Jam Awl */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { flex: 0 0 50px !important; }  /* Jam Akhr */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { flex: 0 0 50px !important; }  /* View */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { flex: 0 0 85px !important; }  /* Approve */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ flex: 0 0 85px !important; } /* Tolak */
+    /* Ukuran pasti per kolom yang SANGAT PRESISI */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 25px !important; }  /* NO */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 75px !important; }  /* Tgl */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 110px !important;}  /* Nama */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 45px !important; }  /* NRP */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 45px !important; }  /* Shift */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 45px !important; }  /* Jam Awl */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 45px !important; }  /* Jam Akhr */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 40px !important; }  /* View */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 75px !important; }  /* Approve */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 75px !important; }  /* Tolak */
 
-    /* PERKECIL TEKS & TOMBOL HANYA DI TABEL SAAT DIBUKA DI HP */
+    /* PERKECIL TEKS, TOMBOL, DAN CEGAH TEKS TURUN KE BAWAH */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p,
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) .stMarkdown {
-        font-size: 13px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important; /* <--- Memaksa nama tidak dienter ke bawah */
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        margin-bottom: 0 !important;
     }
+    
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button {
-        padding: 0px 5px !important;
-        font-size: 12px !important;
+        padding: 0px 4px !important;
+        font-size: 11px !important;
         min-height: 0 !important;
-        height: 32px !important;
+        height: 28px !important;
     }
 }
 </style>
@@ -484,7 +489,6 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         st.subheader("Menunggu Verifikasi Anda")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
-        # WADAH TABEL (MENGGUNAKAN MARKER)
         with st.container():
             st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
             if pending_gl.empty: st.info("Tidak ada SPL baru.")
