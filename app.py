@@ -19,13 +19,13 @@ st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
 <style>
-/* 1. Warna Tombol & Popover */
+/* 1. Warna Tombol & Popover Umum */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   ISOLASI KETAT TABEL HP (HALAMAN DIAM, TABEL GESER)
+   ISOLASI KETAT TABEL HP (LEBIH KOMPAK & TIDAK TERLALU LEBAR)
    ========================================================== */
 @media (max-width: 768px) {
     /* MENGUNCI TOTAL SELURUH HALAMAN AGAR TIDAK BISA GESER */
@@ -33,22 +33,22 @@ div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !imp
         overflow-x: hidden !important;
     }
 
-    /* MENGISOLASI WADAH TABEL (HANYA INI YANG BISA GESER) */
-    /* Rumus "> div.element-container" ini yang mencegah kebocoran ke halaman utama */
+    /* MENGISOLASI WADAH TABEL */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
         overflow-x: auto !important;
         max-width: 100vw !important;
-        -webkit-overflow-scrolling: touch !important; /* Efek geser mulus di HP */
+        -webkit-overflow-scrolling: touch !important; 
         padding-bottom: 10px !important;
         display: block !important;
     }
 
-    /* MEMANJANGKAN ISI TABEL MENJADI 900px AGAR TIDAK MENUMPUK */
+    /* MEMANJANGKAN ISI TABEL MENJADI 700px (SANGAT KOMPAK) */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
-        min-width: 900px !important; 
+        min-width: 700px !important; /* <--- Diperkecil agar tidak perlu geser kejauhan */
         display: flex !important;
+        align-items: center !important; /* Teks & Tombol sejajar vertikal */
     }
 
     /* MENGATUR LEBAR KOLOM AGAR RAPI (TIDAK KEBESARAN) */
@@ -56,20 +56,32 @@ div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !imp
         flex: 1 1 0% !important;
         width: auto !important;
         min-width: 0 !important;
-        padding: 0 4px !important;
+        padding: 0 3px !important; /* Jarak dirapatkan */
     }
     
-    /* Ukuran spesifik kolom (Total = 900px) */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { flex: 0 0 40px !important; }  /* NO */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { flex: 0 0 100px !important; } /* Tgl */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { flex: 0 0 180px !important; } /* Nama */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { flex: 0 0 80px !important; }  /* NRP */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { flex: 0 0 80px !important; }  /* Shift */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { flex: 0 0 80px !important; }  /* Jam Awl */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { flex: 0 0 80px !important; }  /* Jam Akhr */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { flex: 0 0 60px !important; }  /* View */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { flex: 0 0 100px !important; } /* Approve */
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ flex: 0 0 100px !important; } /* Tolak */
+    /* Ukuran spesifik kolom yang DIPERKECIL (Total ~700px) */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { flex: 0 0 35px !important; }  /* NO */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { flex: 0 0 85px !important; }  /* Tgl */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { flex: 0 0 120px !important; } /* Nama */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { flex: 0 0 60px !important; }  /* NRP */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { flex: 0 0 55px !important; }  /* Shift */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { flex: 0 0 50px !important; }  /* Jam Awl */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { flex: 0 0 50px !important; }  /* Jam Akhr */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { flex: 0 0 50px !important; }  /* View */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { flex: 0 0 85px !important; }  /* Approve */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ flex: 0 0 85px !important; } /* Tolak */
+
+    /* PERKECIL TEKS & TOMBOL HANYA DI TABEL SAAT DIBUKA DI HP */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p,
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) .stMarkdown {
+        font-size: 13px !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button {
+        padding: 0px 5px !important;
+        font-size: 12px !important;
+        min-height: 0 !important;
+        height: 32px !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
