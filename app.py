@@ -25,42 +25,46 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   FIX TABEL HP FINAL: HANYA TABEL GESER & LEBAR MENYESUAIKAN
+   PENGUNCI HALAMAN & TABEL GESER PRESISI (KHUSUS HP)
    ========================================================== */
 @media (max-width: 768px) {
-    /* 1. Wadah Utama Tabel (Hanya kotak tabel ini yang punya roda geser) */
+    /* 1. KUNCI HALAMAN UTAMA AGAR DIAM TOTAL (TIDAK IKUT GESER) */
+    html, body, .stApp, .block-container {
+        max-width: 100vw !important;
+        overflow-x: hidden !important; 
+    }
+
+    /* 2. BERI IZIN GESER HANYA PADA KOTAK TABEL SAJA */
     div[data-testid="stVerticalBlock"]:has(.table-marker) {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        width: 100% !important;
-        display: block !important;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 10px;
-        background-color: rgba(0, 0, 0, 0.1); /* Sedikit efek bayangan pemisah */
+        max-width: 100vw !important; /* Mencegah tabel menjebol halaman utama */
+        overflow-x: auto !important; /* Roda geser tabel */
+        -webkit-overflow-scrolling: touch !important; /* Geseran mulus di HP */
+        padding-bottom: 10px !important;
+        border: 1px solid rgba(255,255,255,0.1); /* Garis batas tabel */
+        border-radius: 5px;
     }
 
-    /* 2. Baris Tabel (Header & Isi) dibuat tidak putus dan lebarnya PAS dengan isi */
+    /* 3. BARIS TABEL: Dibuat sejajar, tidak menumpuk, ukuran disesuaikan */
     div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] {
-        flex-wrap: nowrap !important;
         display: flex !important;
-        width: max-content !important; /* KUNCI: Lebar otomatis menyesuaikan isi konten */
-        min-width: 100% !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        min-width: 850px !important; /* Lebar tabel diperkecil agar pas dan tidak kebesaran */
+        width: max-content !important;
     }
 
-    /* 3. Tiap kolom di dalam tabel lebarnya menyesuaikan teks/tombol secara natural */
+    /* 4. KOLOM TABEL: Menyesuaikan isi teks secara natural */
     div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"] {
         flex: 0 0 auto !important;
         width: max-content !important;
-        padding-right: 15px !important; /* Jarak bernapas antar kolom */
-        min-width: 80px !important; /* Batas minimal agar tidak terlalu tergencet */
+        padding: 0 6px !important; /* Jarak antar kolom dirapatkan */
     }
     
-    /* Pengecualian lebar kolom spesifik agar tampilan sempurna */
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(1) { min-width: 30px !important; } /* Kolom NO */
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(8),
+    /* Ukuran spesifik kolom agar tidak kebesaran */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(1) { min-width: 30px !important; } /* NO */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(8) { min-width: 60px !important; } /* View */
     div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(9),
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(10) { min-width: 100px !important; } /* Kolom Tombol */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(10) { min-width: 90px !important; } /* Tombol Approve/Tolak */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -463,7 +467,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         st.subheader("Menunggu Verifikasi Anda")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
-        # WADAH TABEL (MENGGUNAKAN MARKER AGAR BISA SCROLL MANDIRI)
+        # WADAH TABEL (MENGGUNAKAN MARKER)
         with st.container():
             st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
             if pending_gl.empty: st.info("Tidak ada SPL baru.")
