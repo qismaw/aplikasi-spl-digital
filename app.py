@@ -9,6 +9,12 @@ import io
 import gspread
 from google.oauth2.service_account import Credentials
 
+# ==========================================
+# 🛑 LINK DATABASE GOOGLE SHEETS ANDA 🛑
+# ==========================================
+URL_GOOGLE_SHEETS = "https://docs.google.com/spreadsheets/d/1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U/edit?gid=0#gid=0"
+
+
 # Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
@@ -52,19 +58,20 @@ def get_gsheets_client():
 def get_worksheet(sheet_name):
     client = get_gsheets_client()
     try:
-        sh = client.open("Database_SPL_Maco")
+        # Menggunakan URL langsung agar robot tidak salah alamat
+        sh = client.open_by_url(URL_GOOGLE_SHEETS)
         try:
             return sh.worksheet(sheet_name)
         except:
             return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
     except Exception as e:
-        st.error(f"Gagal membuka Spreadsheet. Pastikan nama file Google Sheets adalah 'Database_SPL_Maco' dan sudah dibagikan ke email robot.")
+        st.error(f"Gagal membuka Spreadsheet. Pastikan URL sudah dimasukkan dengan benar di kodingan, dan Anda sudah melakukan Share ke email robot sebagai Editor.")
         st.stop()
 
 # ==========================================
 # DATABASE PENGGUNA (G-SHEETS) DENGAN CACHE
 # ==========================================
-@st.cache_data(ttl=60) # Ingat data selama 60 detik agar tidak kena Limit Google API
+@st.cache_data(ttl=60)
 def load_users():
     sheet = get_worksheet("Users")
     data = sheet.get_all_records()
@@ -76,7 +83,6 @@ def load_users():
             "Sect. Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
             "Administrator": {"password": "admin123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
         }
-        # Tulis ke sheet (Hanya dijalankan sekali saat kosong)
         sheet.clear()
         rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
         for k, v in default_users.items():
@@ -101,12 +107,12 @@ def save_users(users_data):
     for k, v in users_data.items():
         rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
     sheet.update("A1", rows)
-    st.cache_data.clear() # Reset ingatan memori setelah ada update
+    st.cache_data.clear()
 
 # ==========================================
 # DATABASE SPL (G-SHEETS) DENGAN CACHE
 # ==========================================
-@st.cache_data(ttl=15) # Ingat data selama 15 detik agar aman dari Limit Google API
+@st.cache_data(ttl=15)
 def get_db():
     sheet = get_worksheet("Data_SPL")
     data = sheet.get_all_records()
@@ -127,7 +133,7 @@ def save_db(df):
     sheet.clear()
     df = df.astype(str)
     sheet.update("A1", [df.columns.values.tolist()] + df.values.tolist())
-    st.cache_data.clear() # Reset ingatan memori setelah data ditambah/diapprove
+    st.cache_data.clear()
 
 # ==========================================
 # KONFIGURASI PENDELEGASIAN DENGAN CACHE
@@ -153,13 +159,13 @@ def save_config(config):
     st.cache_data.clear()
 
 # ==========================================
-# MUAT DATA UMUM (Hanya dipanggil setelah fungsi didefinisikan)
+# MUAT DATA UMUM
 # ==========================================
 try:
     users_db = load_users()
     LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
 except:
-    LIST_GL = ["Bapak Andi (GL 1)", "Bapak Budi (GL 2)", "Bapak Citra (GL 3)"] # Fallback aman
+    LIST_GL = ["Bapak Andi (GL 1)", "Bapak Budi (GL 2)", "Bapak Citra (GL 3)"]
 
 # ==========================================
 # FUNGSI PENDUKUNG (Hitung Jam & PDF)
@@ -613,12 +619,14 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                 cols[2].write(row['Nama'])
                 cols[3].write(row['NRP'])
                 cols[4].write(row['Shift'].replace('Shift ', ''))
+                
                 jams = row['Jam'].split(' - ')
                 cols[5].write(jams[0] if len(jams) > 0 else "")
                 cols[6].write(jams[1] if len(jams) > 1 else "")
                 
                 with cols[7]:
                     with st.popover("👁️"): display_html_preview(row)
+                            
                 with cols[8]:
                     if st.button("Approve", key=f"sh_app_{row['ID']}"):
                         df_sh.loc[idx, "Status"] = "Final Approved"
@@ -626,6 +634,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                         df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
                         save_db(df_sh)
                         st.rerun()
+                        
                 with cols[9]:
                     with st.popover("Tolak"):
                         alasan_sh = st.text_area("Masukkan Alasan Penolakan:", key=f"txt_tolak_sh_{row['ID']}")
@@ -638,6 +647,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                                 df_sh.loc[idx, "Alasan_Tolak"] = alasan_sh
                                 save_db(df_sh)
                                 st.rerun()
+                
                 st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
 
         st.subheader("Arsip Dokumen Selesai (Siap Unduh)")
