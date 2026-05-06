@@ -165,10 +165,8 @@ def create_pdf(row):
     pdf.cell(40, 10, " PERUSAHAAN :", border=1)
     pdf.cell(150, 10, f" {row['Perusahaan']}", border=1, ln=True)
     
-    # Menghitung Total Lembur
     total_lembur = hitung_total_lembur_str(row['Jam'])
     
-    # Memisahkan Keterangan dan Total Lembur
     pdf.cell(120, 10, " Keterangan Lembur :", border="LT")
     pdf.set_font("Arial", "B", 10)
     pdf.cell(70, 10, f"Total Lembur = {total_lembur} ", border="TR", align="R", ln=True)
@@ -178,7 +176,6 @@ def create_pdf(row):
     pdf.ln(10)
     pdf.set_font("Arial", "", 10)
     
-    # REVISI TANDA TANGAN
     pdf.cell(95, 5, "Diperintahkan Oleh,", align="C")
     pdf.cell(95, 5, "Disetujui Oleh,", ln=True, align="C")
     
@@ -229,7 +226,6 @@ def create_pdf(row):
     pdf.cell(95, 4, "GL / UH", align="C") 
     pdf.cell(95, 4, jabatan_sh, align="C", ln=1)
     
-    # REVISI PENAMAAN FILE PDF
     safe_nama = "".join([c for c in str(row['Nama']) if c.isalpha() or c.isdigit() or c==' ']).strip()
     filename = f"SPL {safe_nama} {row['Tanggal']}.pdf"
     
@@ -396,29 +392,30 @@ elif st.session_state.app_mode == "login":
 # ==========================================
 elif st.session_state.app_mode == "main" and st.session_state.logged_in:
     
+    # --- FITUR EXPANDER GANTI PASSWORD DI SIDEBAR ---
     if st.session_state.role != "Karyawan":
         with st.sidebar:
-            st.header("🔑 Ganti Password")
-            st.write("Ganti sandi Anda demi keamanan.")
-            with st.form("form_ganti_pass", clear_on_submit=True):
-                pass_lama = st.text_input("Password Lama", type="password")
-                pass_baru = st.text_input("Password Baru", type="password")
-                pass_konf = st.text_input("Konfirmasi Password Baru", type="password")
-                
-                if st.form_submit_button("Simpan Password"):
-                    db_pass = load_users()
-                    user_data = db_pass[st.session_state.username]
+            with st.expander("🔑 Ganti Password", expanded=False):
+                st.write("Ganti sandi Anda demi keamanan.")
+                with st.form("form_ganti_pass", clear_on_submit=True):
+                    pass_lama = st.text_input("Password Lama", type="password")
+                    pass_baru = st.text_input("Password Baru", type="password")
+                    pass_konf = st.text_input("Konfirmasi Password Baru", type="password")
                     
-                    if pass_lama != user_data["password"]:
-                        st.error("Password lama salah!")
-                    elif pass_baru != pass_konf:
-                        st.error("Password baru tidak cocok!")
-                    elif len(pass_baru) < 4:
-                        st.error("Password terlalu pendek (Min 4 karakter)!")
-                    else:
-                        user_data["password"] = pass_baru
-                        save_users(db_pass)
-                        st.success("✅ Password berhasil diperbarui!")
+                    if st.form_submit_button("Simpan Password"):
+                        db_pass = load_users()
+                        user_data = db_pass[st.session_state.username]
+                        
+                        if pass_lama != user_data["password"]:
+                            st.error("Password lama salah!")
+                        elif pass_baru != pass_konf:
+                            st.error("Password baru tidak cocok!")
+                        elif len(pass_baru) < 4:
+                            st.error("Password terlalu pendek (Min 4 karakter)!")
+                        else:
+                            user_data["password"] = pass_baru
+                            save_users(db_pass)
+                            st.success("✅ Password berhasil diperbarui!")
 
     col_title, col_logout = st.columns([8, 2])
     with col_title:
