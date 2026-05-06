@@ -26,39 +26,37 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==================================================
-   FIX TAMPILAN TABEL DI HP (BISA GESER KE SAMPING) 
+   FIX TAMPILAN TABEL HP (GESER BERSAMAAN SATU BLOK) 
    ================================================== */
 @media (max-width: 768px) {
-    /* 1. Targetkan HANYA baris yang kolomnya lebih dari 4 (Tabel kita ada 10 kolom). Biarkan form input tetap menumpuk. */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) {
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
+    /* 1. Pindahkan kemampuan geser/scroll ke WADAH UTAMA layar */
+    div.block-container {
         overflow-x: auto !important;
-        overflow-y: hidden !important;
-        padding-bottom: 10px; /* Ruang bernapas untuk jari saat geser layar */
+        padding-bottom: 20px !important;
     }
     
-    /* 2. Lebar dasar kolom tabel agar tulisan tidak tergencet */
+    /* 2. Matikan geser per-baris, dan paksa lebar seluruh baris menjadi 1000px */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) {
+        min-width: 1000px !important; 
+        flex-wrap: nowrap !important;
+        overflow-x: visible !important; /* Kunci rahasianya di sini! */
+    }
+    
+    /* 3. Atur lebar tiap kolom agar lega & rata */
     div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"] {
-        min-width: 120px !important;
-        width: auto !important;
+        min-width: 90px !important;
+        flex: 1 1 0% !important;
+    }
+    
+    /* Kolom NO dibuat paling kecil */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(1) {
+        min-width: 40px !important;
         flex: 0 0 auto !important;
     }
     
-    /* 3. Penyesuaian spesifik per kolom agar terlihat rapi */
-    /* Kolom ke-1 (Nomor) dibuat sangat kecil */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(1) {
-        min-width: 40px !important;
-    }
-    /* Kolom ke-5, 6, 7 (Shift & Jam) dibuat sedang */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(5),
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(6),
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(7) {
-        min-width: 80px !important;
-    }
-    /* Kolom ke-8, 9, 10 (Tombol View, Approve, Tolak) menyesuaikan ukuran tombol */
+    /* Kolom Action (View, Approve, Tolak) agar tombol tidak terjepit */
     div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div[data-testid="column"]:nth-child(n+8) {
-        min-width: 100px !important;
+        min-width: 110px !important;
     }
 }
 </style>
