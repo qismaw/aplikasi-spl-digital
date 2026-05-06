@@ -17,41 +17,53 @@ SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
 # Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
+
 st.markdown("""
 <style>
-/* CSS Warna Tombol & Popover View */
+/* CSS Dasar Warna Tombol & Popover */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
-/* ==================================================
-   FIX TAMPILAN TABEL HP (TERKUNCI & GESER BERSAMAAN) 
-   ================================================== */
+/* ==========================================================
+   TEKNIK KUNCI TABEL HP (Satu Kesatuan & Gerak Bersama)
+   ========================================================== */
 @media (max-width: 768px) {
-    /* 1. Berikan ruang scroll (geser) pada layar utama HP */
+    /* 1. Paksa Wadah Utama Dashboard menjadi lebar (1050px) agar semua baris memanjang bersamaan */
+    /* Ini akan membuat Header dan Data otomatis sejajar dan terkunci */
+    div[data-testid="stVerticalBlock"] > div:has(div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5))) {
+        min-width: 1050px !important;
+    }
+
+    /* 2. Pastikan tiap baris kolom tidak menumpuk ke bawah (tetap sejajar ke samping) */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) {
+        flex-wrap: nowrap !important;
+        display: flex !important;
+        flex-direction: row !important;
+    }
+
+    /* 3. Berikan roda geser (Scroll) pada layar utama agar bisa digeser kanan-kiri satu halaman penuh */
     .main .block-container {
         overflow-x: auto !important;
-        padding-bottom: 20px !important;
+        padding-bottom: 50px !important;
+    }
+
+    /* 4. Kunci lebar kolom secara permanen agar Header dan Data selalu sinkron (Lurus Atas-Bawah) */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div {
+        flex: none !important;
     }
     
-    /* 2. Targetkan KHUSUS baris tabel (yg punya lebih dari 8 kolom). 
-       Form Karyawan (yang isinya 2 kolom) tidak akan terpengaruh & tetap rapi ke bawah. */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) {
-        flex-wrap: nowrap !important;
-        min-width: 1050px !important; /* Paksa lebar tabel utuh membentang keluar layar */
-    }
-    
-    /* 3. Kunci paten lebar tiap-tiap kolom agar sejajar persis atas-bawah layaknya Excel */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(1) { width: 5% !important; flex: none !important; } /* NO */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(2) { width: 12% !important; flex: none !important; } /* Tanggal */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(3) { width: 20% !important; flex: none !important; } /* Nama */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(4) { width: 12% !important; flex: none !important; } /* NRP */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(5) { width: 7% !important; flex: none !important; } /* Shift */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(6) { width: 10% !important; flex: none !important; } /* Jam Awal */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(7) { width: 10% !important; flex: none !important; } /* Jam Akhir */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(8) { width: 8% !important; flex: none !important; } /* View */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(9) { width: 8% !important; flex: none !important; } /* Approve */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(8)) > div:nth-child(10) { width: 8% !important; flex: none !important; } /* Tolak */
+    /* Atur lebar presisi per kolom (Total harus ~1000px) */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(1) { width: 40px !important; }  /* NO */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(2) { width: 110px !important; } /* Tanggal */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(3) { width: 180px !important; } /* Nama */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(4) { width: 100px !important; } /* NRP */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(5) { width: 60px !important; }  /* Shift */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(6) { width: 90px !important; }  /* Jam Awal */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(7) { width: 90px !important; }  /* Jam Akhir */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(8) { width: 60px !important; }  /* View */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(9) { width: 110px !important; } /* Approve */
+    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(5)) > div:nth-child(10) { width: 110px !important; }/* Tolak */
 }
 </style>
 """, unsafe_allow_html=True)
