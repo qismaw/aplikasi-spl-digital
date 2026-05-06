@@ -25,74 +25,68 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   STYLING TABEL GLOBAL (DESKTOP & MOBILE)
-   Membuat kolom buatan terlihat rapat persis seperti dataframe bawaan
+   STYLING TABEL GLOBAL & MOBILE SCROLL (AMAN & PRESISI)
    ========================================================== */
-
-/* Kunci layar utama khusus HP agar tidak goyang */
 @media (max-width: 768px) {
-    body, .stApp { overflow-x: hidden !important; }
+    /* Kunci layar utama khusus HP agar tidak goyang */
+    html, body, .stApp { overflow-x: hidden !important; }
 }
 
-/* WADAH TABEL UTAMA (Background & Border luar mirip dataframe) */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
-    overflow-x: auto !important;
-    max-width: 100% !important;
-    -webkit-overflow-scrolling: touch !important;
-    background-color: rgba(255,255,255,0.03); /* Warna dasar agak gelap */
-    border: 1px solid rgba(255,255,255,0.2);  /* Garis bingkai luar tabel */
+/* WADAH TABEL (Background & Border) */
+div[data-testid="stVerticalBlock"]:has(.table-marker) {
+    background-color: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 6px;
-    padding: 0px !important; /* Hapus padding agar border mepet */
+    padding: 10px !important;
     margin-bottom: 20px;
+    overflow-x: auto !important; /* Izinkan scroll horizontal di HP */
+    -webkit-overflow-scrolling: touch !important;
 }
 
-/* BARIS TABEL (Dibikin rapat & MENCEGAH MELAR di monitor Desktop) */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
+/* MENCEGAH BARIS BERTUMPUK DI HP & MENGATUR LEBAR AMAN */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    width: max-content !important; /* KUNCI: Mencegah melar berlebihan di monitor lebar */
-    min-width: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 0px !important; /* Hapus spasi bawaan antar kolom */
-    border-bottom: 1px solid rgba(255,255,255,0.1) !important; /* Garis bawah per baris ala Excel */
+    min-width: 850px !important; /* BATAS AMAN: Mencegah tabel hilang/collapse */
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
     padding: 8px 0px !important;
+    gap: 0px !important;
 }
 
-/* KOLOM TABEL (Jarak mepet antar isian) */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
-    flex: 0 0 auto !important;
-    padding: 0 10px !important;
+/* PENGATURAN KOLOM (TETAP SEJAJAR) */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"] {
+    flex: 0 0 auto !important; 
+    padding: 0 8px !important;
 }
 
-/* UKURAN KOLOM PRESISI (Cukup untuk menampung data tanpa sisa ruang yang bolong) */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 40px !important; }   /* NO */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }  /* Tgl */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; }  /* Nama */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 80px !important; }   /* NRP */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 80px !important; }   /* Shift */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 80px !important; }   /* Jam Awl */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 80px !important; }   /* Jam Akhir */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 60px !important; }   /* View */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 90px !important; }   /* Approve */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 90px !important; }  /* Tolak */
+/* LEBAR SPESIFIK KOLOM AGAR RAPI (TOTAL ~850px) */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 40px !important; }   /* NO */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 90px !important; }  /* Tgl */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 170px !important; }  /* Nama */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 70px !important; }   /* NRP */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 65px !important; }   /* Shift */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 65px !important; }   /* Jam Awl */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 65px !important; }   /* Jam Akhr */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 60px !important; }   /* View */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 100px !important; }  /* Approve */
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 100px !important; }  /* Tolak */
 
-/* PERKECIL TEKS, CEGAH TEKS TURUN KE BAWAH (WRAP) */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p,
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) .stMarkdown {
+/* PERKECIL TEKS & TOMBOL DI DALAM TABEL */
+div[data-testid="stVerticalBlock"]:has(.table-marker) p,
+div[data-testid="stVerticalBlock"]:has(.table-marker) .stMarkdown {
     font-size: 13px !important;
-    white-space: nowrap !important; /* Paksa nama agar tidak di-enter ke bawah */
+    white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     margin-bottom: 0 !important;
 }
 
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button {
-    padding: 0px 8px !important;
+div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stButton"] button {
+    padding: 0px 5px !important;
     font-size: 12px !important;
     min-height: 0 !important;
     height: 30px !important;
-    line-height: 1 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -149,7 +143,7 @@ def load_users():
             "Bapak Andi (GL 1)": {"password": "andi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
             "Bapak Budi (GL 2)": {"password": "budi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
             "Bapak Citra (GL 3)": {"password": "citra123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
-            "Sect. Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
+            "Section Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
             "Administrator": {"password": "admin123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
         }
         sheet.clear()
@@ -351,7 +345,7 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HAL halaman UTAMA (LANDING PAGE)
+# HALAMAN UTAMA (LANDING PAGE)
 # ==========================================
 if st.session_state.app_mode == "landing":
     st.markdown("<br><br><h1 style='text-align: center;'>🏢 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
@@ -393,10 +387,11 @@ elif st.session_state.app_mode == "login":
         elif role == "Section Head":
             password = st.text_input("Password Section Head", type="password")
             if st.button("Login Sect Head", use_container_width=True):
-                if proses_login("Haris Abi Wibowo", password):
+                # SUDAH SINKRON DENGAN GOOGLE SHEETS
+                if proses_login("Section Head", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Section Head"
-                    st.session_state.username = "Haris Abi Wibowo"
+                    st.session_state.username = "Section Head"
                     st.session_state.app_mode = "main"
                     st.rerun()
         elif role == "Admin":
@@ -644,7 +639,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                         if st.button("Approve", key=f"sh_app_{row['ID']}"):
                             df_sh.loc[idx, "Status"] = "Final Approved"
                             df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo"
+                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo" # <--- Tetap pakai nama asli untuk cetakan PDF
                             save_db(df_sh)
                             st.rerun()
                     with cols[9]:
@@ -676,9 +671,31 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             tabel_admin = df_admin[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']].copy()
             tabel_admin.index = range(1, len(tabel_admin) + 1)
             st.dataframe(tabel_admin, use_container_width=True)
+            
+        st.markdown("---")
+        st.subheader("📥 Unduh Rekap Data (Excel)")
+        
+        # --- FITUR DOWNLOAD EXCEL (XLSX) ---
+        try:
+            output = io.BytesIO()
+            # Gunakan engine openpyxl atau biarkan pandas memilih otomatis
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                tabel_admin.to_excel(writer, index=False, sheet_name='Rekap_SPL')
+        except Exception:
+            # Fallback jika environment menggunakan engine lain
+            output = io.BytesIO()
+            with pd.ExcelWriter(output) as writer:
+                tabel_admin.to_excel(writer, index=False, sheet_name='Rekap_SPL')
+
+        st.download_button(
+            label="📊 Download Tabel di Atas (Format .xlsx)",
+            data=output.getvalue(),
+            file_name=f"Rekap_SPL_{get_wib_time().strftime('%d_%m_%Y')}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
         
         st.markdown("---")
-        st.subheader("🗂️ Unduh Arsip PDF Selesai")
+        st.subheader("🗂️ Unduh Arsip Dokumen Final (PDF)")
         approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
         if approved_admin.empty: st.write("Belum ada dokumen yang selesai.")
         for idx, row in approved_admin.iterrows():
