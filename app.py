@@ -346,7 +346,7 @@ elif st.session_state.app_mode == "login":
         if role == "GL/UH":
             nama_gl = st.selectbox("Pilih Nama Anda", LIST_GL)
             password = st.text_input("Password", type="password")
-            if st.button("Login GL", use_container_width=True):
+            if st.button("Login", use_container_width=True):
                 if proses_login(nama_gl, password):
                     st.session_state.logged_in = True
                     st.session_state.role = "GL/UH"
@@ -355,16 +355,16 @@ elif st.session_state.app_mode == "login":
                     st.rerun()
         elif role == "Section Head":
             password = st.text_input("Password Section Head", type="password")
-            if st.button("Login Sect Head", use_container_width=True):
-                if proses_login("Sect. Head", password):
+            if st.button("Login", use_container_width=True):
+                if proses_login("Section Head", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Section Head"
-                    st.session_state.username = "Sect. Head"
+                    st.session_state.username = "Section Head"
                     st.session_state.app_mode = "main"
                     st.rerun()
         elif role == "Admin":
             password = st.text_input("Password Admin", type="password")
-            if st.button("Login Admin", use_container_width=True):
+            if st.button("Login", use_container_width=True):
                 if proses_login("Administrator", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Admin"
