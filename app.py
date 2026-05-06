@@ -25,50 +25,42 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   TEKNIK KUNCI TABEL MENGGUNAKAN MARKER (PASTI BERHASIL DI HP)
+   FIX TABEL HP FINAL: HANYA TABEL GESER & LEBAR MENYESUAIKAN
    ========================================================== */
 @media (max-width: 768px) {
-    /* Wadah utama dibiarkan normal (tidak ikut geser) */
-    .main .block-container { overflow-x: hidden !important; }
-
-    /* Targetkan kotak yang punya "Chip Penanda" (.table-marker) */
+    /* 1. Wadah Utama Tabel (Hanya kotak tabel ini yang punya roda geser) */
     div[data-testid="stVerticalBlock"]:has(.table-marker) {
-        overflow-x: auto !important; /* Pasang roda scroll HANYA di tabel ini */
-        -webkit-overflow-scrolling: touch !important; /* Bikin geseran HP lebih mulus */
-        background-color: rgba(255, 255, 255, 0.02); /* Sedikit warna agar terlihat terpisah */
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        display: block !important;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 8px;
         padding: 10px;
-        margin-bottom: 20px;
-    }
-    
-    /* Paksa baris di dalam penanda agar MEMANJANG, bukan menumpuk */
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] {
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        min-width: 1050px !important; /* Ini panjang rel keretanya */
-        display: flex !important;
-    }
-    
-    /* Kunci lebar spesifik tiap-tiap selnya agar Judul dan Isi LURUS */
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"] {
-        width: auto !important;
-        flex: 0 0 auto !important;
-        display: block !important;
-        padding: 0 5px !important;
+        background-color: rgba(0, 0, 0, 0.1); /* Sedikit efek bayangan pemisah */
     }
 
-    /* Ukuran pasti per kolom */
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 40px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 160px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 90px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 80px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 90px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 90px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 70px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; }
-    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10) { width: 110px !important; }
+    /* 2. Baris Tabel (Header & Isi) dibuat tidak putus dan lebarnya PAS dengan isi */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] {
+        flex-wrap: nowrap !important;
+        display: flex !important;
+        width: max-content !important; /* KUNCI: Lebar otomatis menyesuaikan isi konten */
+        min-width: 100% !important;
+    }
+
+    /* 3. Tiap kolom di dalam tabel lebarnya menyesuaikan teks/tombol secara natural */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"] {
+        flex: 0 0 auto !important;
+        width: max-content !important;
+        padding-right: 15px !important; /* Jarak bernapas antar kolom */
+        min-width: 80px !important; /* Batas minimal agar tidak terlalu tergencet */
+    }
+    
+    /* Pengecualian lebar kolom spesifik agar tampilan sempurna */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(1) { min-width: 30px !important; } /* Kolom NO */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(8),
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(9),
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"]:nth-child(10) { min-width: 100px !important; } /* Kolom Tombol */
 }
 </style>
 """, unsafe_allow_html=True)
@@ -471,18 +463,18 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         st.subheader("Menunggu Verifikasi Anda")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
-        # WADAH TABEL DENGAN MARKER CSS
+        # WADAH TABEL (MENGGUNAKAN MARKER AGAR BISA SCROLL MANDIRI)
         with st.container():
-            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True) # INI CHIP PENANDANYA
+            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
             if pending_gl.empty: st.info("Tidak ada SPL baru.")
             else:
                 st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
-                cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                cols = st.columns(10)
                 for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
                 st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
                 for i, (idx, row) in enumerate(pending_gl.iterrows(), 1):
-                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                    cols = st.columns(10)
                     cols[0].write(str(i))
                     cols[1].write(row['Tanggal'])
                     cols[2].write(row['Nama'])
@@ -528,15 +520,15 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
             
             with st.container():
-                st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True) # INI CHIP PENANDANYA
+                st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
                 if not pending_sh.empty:
                     st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
-                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                    cols = st.columns(10)
                     for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
                     st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
                     for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
-                        cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                        cols = st.columns(10)
                         cols[0].write(str(i))
                         cols[1].write(row['Tanggal'])
                         cols[2].write(row['Nama'])
@@ -600,16 +592,16 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
         
         with st.container():
-            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True) # INI CHIP PENANDANYA
+            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
             if pending_sh.empty: st.info("Tidak ada antrean SPL.")
             else:
                 st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
-                cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                cols = st.columns(10)
                 for idx, title in enumerate(["**NO**", "**Tanggal**", "**Nama**", "**NRP**", "**Shift**", "**Jam awal**", "**jam Akhir**", "**View**", "**Approve**", "**Tolak**"]): cols[idx].markdown(title)
                 st.markdown("<hr style='margin: 0px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
                 for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
-                    cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
+                    cols = st.columns(10)
                     cols[0].write(str(i))
                     cols[1].write(row['Tanggal'])
                     cols[2].write(row['Nama'])
