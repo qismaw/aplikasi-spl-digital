@@ -25,68 +25,69 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   STYLING TABEL GLOBAL & MOBILE SCROLL (AMAN & PRESISI)
+   PERBAIKAN FINAL TABEL: DIJAMIN MUNCUL & TIDAK BOCOR
    ========================================================== */
 @media (max-width: 768px) {
-    /* Kunci layar utama khusus HP agar tidak goyang */
-    html, body, .stApp { overflow-x: hidden !important; }
+    /* Kunci layar utama khusus HP agar tidak goyang ke samping */
+    body, .stApp { overflow-x: hidden !important; }
 }
 
-/* WADAH TABEL (Background & Border) */
-div[data-testid="stVerticalBlock"]:has(.table-marker) {
-    background-color: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 6px;
+/* 1. ISOLASI WADAH TABEL: Hanya kotak yang punya penanda yang kena efek */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
+    background-color: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    border-radius: 8px !important;
     padding: 10px !important;
-    margin-bottom: 20px;
-    overflow-x: auto !important; /* Izinkan scroll horizontal di HP */
+    margin-bottom: 20px !important;
+    overflow-x: auto !important; /* Roda geser tabel */
     -webkit-overflow-scrolling: touch !important;
 }
 
-/* MENCEGAH BARIS BERTUMPUK DI HP & MENGATUR LEBAR AMAN */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] {
+/* 2. BARIS TABEL: Dirapatkan dan diberi garis bawah ala Excel */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    min-width: 850px !important; /* BATAS AMAN: Mencegah tabel hilang/collapse */
+    min-width: 900px !important; /* Panjang rel tabel standar */
     border-bottom: 1px solid rgba(255,255,255,0.1) !important;
     padding: 8px 0px !important;
     gap: 0px !important;
+    align-items: center !important;
 }
 
-/* PENGATURAN KOLOM (TETAP SEJAJAR) */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"] {
-    flex: 0 0 auto !important; 
+/* 3. KOLOM TABEL: Diatur jaraknya agar tidak renggang */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    flex: 0 0 auto !important;
     padding: 0 8px !important;
 }
 
-/* LEBAR SPESIFIK KOLOM AGAR RAPI (TOTAL ~850px) */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 40px !important; }   /* NO */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 90px !important; }  /* Tgl */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 170px !important; }  /* Nama */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 70px !important; }   /* NRP */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 65px !important; }   /* Shift */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 65px !important; }   /* Jam Awl */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 65px !important; }   /* Jam Akhr */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 60px !important; }   /* View */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 100px !important; }  /* Approve */
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 100px !important; }  /* Tolak */
+/* 4. UKURAN PRESISI KOLOM (Mencegah teks bolong) */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 40px !important; }  /* NO */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; } /* Tgl */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 170px !important; } /* Nama */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 80px !important; }  /* NRP */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 70px !important; }  /* Shift */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 70px !important; }  /* Jam Awl */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 70px !important; }  /* Jam Akhr */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 60px !important; }  /* View */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 95px !important; }  /* Approve */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 95px !important; }  /* Tolak */
 
-/* PERKECIL TEKS & TOMBOL DI DALAM TABEL */
-div[data-testid="stVerticalBlock"]:has(.table-marker) p,
-div[data-testid="stVerticalBlock"]:has(.table-marker) .stMarkdown {
-    font-size: 13px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+/* 5. TEKS & TOMBOL: Diberi kebebasan agar teks MUNCUL KEMBALI */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p,
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) .stMarkdown {
+    font-size: 14px !important;
+    white-space: normal !important; /* Teks diizinkan muncul utuh */
+    overflow: visible !important;
     margin-bottom: 0 !important;
+    line-height: 1.2 !important;
 }
 
-div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stButton"] button {
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button {
     padding: 0px 5px !important;
     font-size: 12px !important;
+    height: 32px !important;
     min-height: 0 !important;
-    height: 30px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -387,7 +388,7 @@ elif st.session_state.app_mode == "login":
         elif role == "Section Head":
             password = st.text_input("Password Section Head", type="password")
             if st.button("Login Sect Head", use_container_width=True):
-                # SUDAH SINKRON DENGAN GOOGLE SHEETS
+                # SUDAH SINKRON DENGAN DATABASE
                 if proses_login("Section Head", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Section Head"
@@ -639,7 +640,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                         if st.button("Approve", key=f"sh_app_{row['ID']}"):
                             df_sh.loc[idx, "Status"] = "Final Approved"
                             df_sh.loc[idx, "Waktu_SH"] = get_wib_time().strftime("%Y-%m-%d %H:%M")
-                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo" # <--- Tetap pakai nama asli untuk cetakan PDF
+                            df_sh.loc[idx, "Nama_SH"] = "Haris Abi Wibowo" 
                             save_db(df_sh)
                             st.rerun()
                     with cols[9]:
@@ -675,14 +676,12 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         st.markdown("---")
         st.subheader("📥 Unduh Rekap Data (Excel)")
         
-        # --- FITUR DOWNLOAD EXCEL (XLSX) ---
+        # --- FITUR DOWNLOAD EXCEL (.xlsx) ---
         try:
             output = io.BytesIO()
-            # Gunakan engine openpyxl atau biarkan pandas memilih otomatis
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 tabel_admin.to_excel(writer, index=False, sheet_name='Rekap_SPL')
         except Exception:
-            # Fallback jika environment menggunakan engine lain
             output = io.BytesIO()
             with pd.ExcelWriter(output) as writer:
                 tabel_admin.to_excel(writer, index=False, sheet_name='Rekap_SPL')
