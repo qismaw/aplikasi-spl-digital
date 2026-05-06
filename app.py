@@ -19,7 +19,7 @@ st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
 <style>
-/* 1. Warna Tombol & Popover Umum */
+/* 1. Warna Tombol Umum */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
@@ -27,12 +27,10 @@ div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !imp
 /* ==========================================================
    PERBAIKAN TABEL: ANTI TUMPANG TINDIH & LEBIH RAPI
    ========================================================== */
-
 @media (max-width: 768px) {
     body, .stApp { overflow-x: hidden !important; }
 }
 
-/* Wadah Utama Tabel */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     background-color: rgba(255,255,255,0.03) !important;
     border: 1px solid rgba(255,255,255,0.2) !important;
@@ -42,7 +40,6 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     overflow-x: auto !important;
 }
 
-/* Pengaturan Baris */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
     display: flex !important;
     flex-direction: row !important;
@@ -54,12 +51,10 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) di
     align-items: center !important;
 }
 
-/* Hilangkan border bawah pada baris terakhir */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child {
     border-bottom: none !important;
 }
 
-/* Kolom Tabel */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
     flex: 0 0 auto !important;
     padding: 0 10px !important;
@@ -68,27 +63,21 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) di
 }
 
 /* Lebar Kolom Presisi */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 45px !important; }  /* NO */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; } /* Tgl */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; } /* Nama */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 85px !important; }  /* NRP */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 70px !important; }  /* Shift */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 80px !important; }  /* Jam Awl */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 80px !important; }  /* Jam Akhr */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 75px !important; }  /* View */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; } /* Approve */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 110px !important; } /* Tolak */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 45px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 85px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 70px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 80px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 80px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 75px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 110px !important; }
 
-/* Teks */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
     margin-bottom: 0 !important;
     font-size: 14px !important;
     white-space: nowrap !important;
-}
-
-/* Header Highlight */
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:first-child {
-    background-color: rgba(255,255,255,0.05) !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -142,9 +131,9 @@ def load_users():
     data = sheet.get_all_records()
     if not data:
         default_users = {
-            "Bapak Andi (GL 1)": {"password": "andi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
-            "Section Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
-            "Administrator": {"password": "admin123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
+            "Bapak Andi (GL 1)": {"password": "123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Section Head": {"password": "123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
+            "Administrator": {"password": "123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
         }
         sheet.clear()
         rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
@@ -377,7 +366,7 @@ elif st.session_state.app_mode == "login":
         if role == "GL/UH":
             nama_gl = st.selectbox("Pilih Nama Anda", LIST_GL)
             password = st.text_input("Password", type="password")
-            if st.button("Login GL", use_container_width=True):
+            if st.button("LOGIN", use_container_width=True):
                 if proses_login(nama_gl, password):
                     st.session_state.logged_in = True
                     st.session_state.role = "GL/UH"
@@ -386,7 +375,7 @@ elif st.session_state.app_mode == "login":
                     st.rerun()
         elif role == "Section Head":
             password = st.text_input("Password Section Head", type="password")
-            if st.button("Login Sect Head", use_container_width=True):
+            if st.button("LOGIN", use_container_width=True):
                 if proses_login("Section Head", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Section Head"
@@ -395,7 +384,7 @@ elif st.session_state.app_mode == "login":
                     st.rerun()
         elif role == "Admin":
             password = st.text_input("Password Admin", type="password")
-            if st.button("Login Admin", use_container_width=True):
+            if st.button("LOGIN", use_container_width=True):
                 if proses_login("Administrator", password):
                     st.session_state.logged_in = True
                     st.session_state.role = "Admin"
@@ -657,24 +646,24 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         df_admin = get_db()
         st.title("📊 Database SPL Keseluruhan")
         
-        # --- KEMBALIKAN FITUR FILTER ---
-        filter_mode = st.radio("Pilih Mode Filter:", ["Semua Data", "Filter Bulan & Tahun", "Filter Tanggal Spesifik"], horizontal=True)
+        # --- FILTER RINGKAS SESUAI PERMINTAAN ---
+        filter_mode = st.radio("Pilih Mode Filter:", ["Bulan & Tahun", "Tanggal Spesifik"], horizontal=True)
         df_filtered = df_admin.copy()
         
-        if filter_mode == "Filter Bulan & Tahun":
+        if filter_mode == "Bulan & Tahun":
             col_b, col_t = st.columns(2)
             list_bulan = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
             list_tahun = [str(y) for y in range(2024, 2030)]
             pilih_bulan = col_b.selectbox("Pilih Bulan", list_bulan, index=get_wib_time().month - 1)
             pilih_tahun = col_t.selectbox("Pilih Tahun", list_tahun, index=list_tahun.index(str(get_wib_time().year)) if str(get_wib_time().year) in list_tahun else 0)
             df_filtered = df_filtered[df_filtered['Tanggal'].str.startswith(f"{pilih_tahun}-{pilih_bulan}")]
-        elif filter_mode == "Filter Tanggal Spesifik":
+        else:
             tgl_spesifik = st.date_input("Pilih Tanggal", value=get_wib_time().date())
             df_filtered = df_filtered[df_filtered['Tanggal'] == str(tgl_spesifik)]
             
         st.write(f"Menampilkan **{len(df_filtered)}** baris data.")
 
-        # --- TOMBOL DOWNLOAD EXCEL DI ATAS TABEL DENGAN FORMAT SESUAI GAMBAR ---
+        # --- TOMBOL DOWNLOAD EXCEL DI ATAS TABEL ---
         if not df_filtered.empty:
             excel_df = df_filtered.copy()
             excel_df.insert(0, 'No.', range(1, len(excel_df) + 1))
@@ -704,7 +693,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-        # --- TAMPILAN TABEL DASHBOARD ---
+        # --- TAMPILAN TABEL ---
         st.dataframe(df_filtered[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']], use_container_width=True)
         
         st.markdown("---")
