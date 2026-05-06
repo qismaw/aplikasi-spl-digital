@@ -25,48 +25,50 @@ div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: 
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
 /* ==========================================================
-   FIX TABEL HP: HANYA TABEL YANG GESER, HALAMAN TETAP DIAM
+   TEKNIK KUNCI TABEL MENGGUNAKAN MARKER (PASTI BERHASIL DI HP)
    ========================================================== */
 @media (max-width: 768px) {
-    /* Pastikan Wadah Utama Aplikasi tidak bisa geser ke samping */
-    .main .block-container {
-        overflow-x: hidden !important;
-    }
+    /* Wadah utama dibiarkan normal (tidak ikut geser) */
+    .main .block-container { overflow-x: hidden !important; }
 
-    /* Targetkan wadah yang membungkus baris tabel (yg ada 10 kolom) */
-    /* Kita beri izin geser hanya pada blok tabel ini saja */
-    div[data-testid="stVerticalBlock"] > div:has(div[data-testid="stHorizontalBlock"] > div:nth-child(10)) {
-        overflow-x: auto !important;
-        display: block !important;
-        width: 100% !important;
-        padding-bottom: 20px !important;
-        border: 1px solid #333; /* Opsional: garis tipis penanda area tabel */
-        border-radius: 5px;
-    }
-
-    /* Paksa isi tabel tetap memanjang ke samping (tidak menumpuk ke bawah) */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) {
-        min-width: 1100px !important; /* Lebar total tabel */
-        flex-wrap: nowrap !important;
-        display: flex !important;
-    }
-
-    /* Kunci lebar kolom agar sejajar persis atas dan bawah */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div {
-        flex: none !important;
+    /* Targetkan kotak yang punya "Chip Penanda" (.table-marker) */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) {
+        overflow-x: auto !important; /* Pasang roda scroll HANYA di tabel ini */
+        -webkit-overflow-scrolling: touch !important; /* Bikin geseran HP lebih mulus */
+        background-color: rgba(255, 255, 255, 0.02); /* Sedikit warna agar terlihat terpisah */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 20px;
     }
     
-    /* Atur lebar presisi per kolom */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(1) { width: 40px !important; }   /* NO */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(2) { width: 110px !important; }  /* Tanggal */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(3) { width: 180px !important; }  /* Nama */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(4) { width: 100px !important; }  /* NRP */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(5) { width: 70px !important; }   /* Shift */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(6) { width: 90px !important; }   /* Jam Awal */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(7) { width: 90px !important; }   /* Jam Akhir */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(8) { width: 60px !important; }   /* View */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(9) { width: 120px !important; }  /* Approve */
-    div[data-testid="stHorizontalBlock"]:has(> div:nth-child(10)) > div:nth-child(10){ width: 120px !important; }  /* Tolak */
+    /* Paksa baris di dalam penanda agar MEMANJANG, bukan menumpuk */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        min-width: 1050px !important; /* Ini panjang rel keretanya */
+        display: flex !important;
+    }
+    
+    /* Kunci lebar spesifik tiap-tiap selnya agar Judul dan Isi LURUS */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="column"] {
+        width: auto !important;
+        flex: 0 0 auto !important;
+        display: block !important;
+        padding: 0 5px !important;
+    }
+
+    /* Ukuran pasti per kolom */
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 40px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 160px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 90px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 80px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 90px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 90px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 70px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; }
+    div[data-testid="stVerticalBlock"]:has(.table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10) { width: 110px !important; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -419,7 +421,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
     
     config_del = load_config()
 
-    # --- TAMPILAN KARYAWAN (HANYA VERTIKAL, TIDAK BISA GESER) ---
+    # --- KARYAWAN ---
     if st.session_state.role == "Karyawan":
         with st.form("form_spl", clear_on_submit=True):
             col1, col2 = st.columns(2)
@@ -463,14 +465,15 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     save_db(df)
                     st.success(f"✅ BERHASIL: SPL untuk {nama} terkirim!")
 
-    # --- TAMPILAN GL/UH (KUNCI TABEL DI DALAM CONTAINER) ---
+    # --- GL/UH ---
     elif st.session_state.role == "GL/UH":
         df_gl = get_db()
         st.subheader("Menunggu Verifikasi Anda")
         pending_gl = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
         
-        # --- MULAI AREA TABEL GESER ---
+        # WADAH TABEL DENGAN MARKER CSS
         with st.container():
+            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True) # INI CHIP PENANDANYA
             if pending_gl.empty: st.info("Tidak ada SPL baru.")
             else:
                 st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
@@ -511,7 +514,6 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                                     save_db(df_gl)
                                     st.rerun()
                     st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
-        # --- SELESAI AREA TABEL GESER ---
                     
         st.subheader("Riwayat Pekerjaan")
         history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved") | (df_gl["Status"] == "Ditolak")) & (df_gl["Nama_GL"] == st.session_state.username)]
@@ -524,7 +526,9 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
             st.warning("👑 **TUGAS PJS SECTION HEAD**")
             pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
+            
             with st.container():
+                st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True) # INI CHIP PENANDANYA
                 if not pending_sh.empty:
                     st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
                     cols = st.columns([0.6, 1.5, 2.5, 1.5, 0.8, 1.2, 1.2, 1.0, 1.2, 1.2])
@@ -596,6 +600,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
         
         with st.container():
+            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True) # INI CHIP PENANDANYA
             if pending_sh.empty: st.info("Tidak ada antrean SPL.")
             else:
                 st.markdown("<hr style='margin: 0px;'>", unsafe_allow_html=True)
