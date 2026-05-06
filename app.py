@@ -19,12 +19,14 @@ st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 st.markdown("""
 <style>
-/* Warna Tombol Umum */
+/* 1. Warna Tombol Umum */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
-/* STYLING TABEL: ANTI TUMPANG TINDIH & RAPI */
+/* ==========================================================
+   STYLING TABEL: ANTI TUMPANG TINDIH & LEBIH RAPI
+   ========================================================== */
 @media (max-width: 768px) {
     body, .stApp { overflow-x: hidden !important; }
 }
@@ -49,18 +51,40 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) di
     align-items: center !important;
 }
 
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child {
+    border-bottom: none !important;
+}
+
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
     flex: 0 0 auto !important;
     padding: 0 10px !important;
+    display: flex !important;
+    align-items: center !important;
 }
+
+/* Lebar Kolom Presisi */
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 45px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) { width: 85px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(5) { width: 70px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(6) { width: 80px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(7) { width: 80px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 75px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 110px !important; }
 
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
     margin-bottom: 0 !important;
     font-size: 14px !important;
+    white-space: nowrap !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
+# ==========================================
+# SETUP SESSION STATE & ROUTING
+# ==========================================
 if "app_mode" not in st.session_state: st.session_state.app_mode = "landing"
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -69,55 +93,110 @@ if "logged_in" not in st.session_state:
 
 def get_wib_time(): return datetime.utcnow() + timedelta(hours=7)
 
-# KONEKSI GOOGLE SHEETS
+# ==========================================
+# KONEKSI KE GOOGLE SHEETS
+# ==========================================
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
 @st.cache_resource
 def get_gsheets_client():
-    creds_dict = json.loads(st.secrets["gcp_credentials"])
-    creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
-    return gspread.authorize(creds)
+    try:
+        creds_dict = json.loads(st.secrets["gcp_credentials"])
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
+        return gspread.authorize(creds)
+    except Exception as e:
+        st.error(f"Gagal memuat kredensial: {e}")
+        st.stop()
 
 def get_worksheet(sheet_name):
     client = get_gsheets_client()
-    sh = client.open_by_key(SHEET_ID)
-    try: return sh.worksheet(sheet_name)
-    except: return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
+    try:
+        sh = client.open_by_key(SHEET_ID)
+        try: return sh.worksheet(sheet_name)
+        except: return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
+    except Exception as e:
+        st.error(f"Gagal membuka Spreadsheet: {e}")
+        st.stop()
 
-def safe_update(sheet, data):
-    sheet.clear()
-    sheet.update("A1", data)
+def safe_update(sheet, data, range_name="A1"):
+    try: sheet.update(values=data, range_name=range_name)
+    except TypeError: sheet.update(range_name, data)
 
-# DATABASE
+# ==========================================
+# DATABASE PENGGUNA
+# ==========================================
 @st.cache_data(ttl=60)
 def load_users():
     sheet = get_worksheet("Users")
     data = sheet.get_all_records()
-    return {str(row["Username"]): {"password": str(row["Password"]), "failed_attempts": int(row["Gagal"]), "blocked": str(row["Blocked"]).lower() == "true", "role": str(row["Role"])} for row in data}
+    if not data: return {}
+    user_dict = {}
+    for row in data:
+        user_dict[str(row["Username"])] = {
+            "password": str(row["Password"]), 
+            "failed_attempts": int(row["Gagal"]), 
+            "blocked": str(row["Blocked"]).lower() == "true", 
+            "role": str(row["Role"])
+        }
+    return user_dict
 
 def save_users(users_data):
     sheet = get_worksheet("Users")
+    sheet.clear()
     rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
     for k, v in users_data.items(): rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
     safe_update(sheet, rows)
+    st.cache_data.clear()
 
 @st.cache_data(ttl=60)
 def load_config():
     sheet = get_worksheet("Config")
     data = sheet.get_all_records()
-    return {"status_aktif": str(data[0]["status_aktif"]).lower() == "true", "pjs_nama": str(data[0]["pjs_nama"])} if data else {"status_aktif": False, "pjs_nama": ""}
+    if not data: return {"status_aktif": False, "pjs_nama": ""}
+    row = data[0]
+    return {"status_aktif": str(row["status_aktif"]).lower() == "true", "pjs_nama": str(row["pjs_nama"])}
 
+def save_config(config):
+    sheet = get_worksheet("Config")
+    sheet.clear()
+    rows = [["status_aktif", "pjs_nama"], [str(config["status_aktif"]), config["pjs_nama"]]]
+    safe_update(sheet, rows)
+    st.cache_data.clear()
+
+try:
+    users_db = load_users()
+    LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
+except: LIST_GL = ["Bapak Andi (GL 1)"]
+
+# ==========================================
+# DATABASE SPL 
+# ==========================================
 @st.cache_data(ttl=15)
 def get_db():
     sheet = get_worksheet("Data_SPL")
     data = sheet.get_all_records()
-    df = pd.DataFrame(data) if data else pd.DataFrame(columns=["ID", "Nama", "NRP", "Section", "Shift", "Tanggal", "Jam", "Perusahaan", "Alasan", "Pengawas_Tujuan", "Status", "Waktu_GL", "Nama_GL", "Waktu_SH", "Nama_SH", "Alasan_Tolak"])
-    return df.astype(str)
+    cols = ["ID", "Nama", "NRP", "Section", "Shift", "Tanggal", "Jam", "Perusahaan", "Alasan", "Pengawas_Tujuan", "Status", "Waktu_GL", "Nama_GL", "Waktu_SH", "Nama_SH", "Alasan_Tolak"]
+    if not data:
+        df = pd.DataFrame(columns=cols)
+        safe_update(sheet, [cols])
+        return df
+    else:
+        df = pd.DataFrame(data)
+        for c in cols:
+            if c not in df.columns: df[c] = ""
+        return df.astype(str)
 
 def save_db(df):
     sheet = get_worksheet("Data_SPL")
+    sheet.clear()
+    df = df.astype(str)
     data_to_save = [df.columns.values.tolist()] + df.values.tolist()
     safe_update(sheet, data_to_save)
+    st.cache_data.clear()
 
+# ==========================================
+# FUNGSI PENDUKUNG
+# ==========================================
 def hitung_total_lembur_str(jam_str):
     if pd.notna(jam_str) and " - " in str(jam_str):
         try:
@@ -126,7 +205,9 @@ def hitung_total_lembur_str(jam_str):
             wk = datetime.strptime(akhir.strip(), "%H:%M")
             selisih = (wk - wa).total_seconds()
             if selisih < 0: selisih += 24 * 3600
-            return f"{int(selisih // 3600):02d}:{int((selisih % 3600) // 60):02d}"
+            hours = int(selisih // 3600)
+            minutes = int((selisih % 3600) // 60)
+            return f"{hours:02d}:{minutes:02d}"
         except: return "-"
     return "-"
 
@@ -135,130 +216,270 @@ def create_pdf(row):
     pdf.add_page()
     pdf.rect(5, 5, 200, 287)
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "SURAT PERINTAH LEMBUR - PT. Saptaindra Sejati", ln=True, align="C")
+    pdf.cell(50, 20, "", border=1) 
     pdf.set_font("Arial", "", 10)
+    pdf.multi_cell(0, 10, "PT. Saptaindra Sejati\nSite Maco", border=1, align='L')
+    try: pdf.image("logo.png.png", x=9, y=11, w=42) 
+    except: pass 
+    pdf.ln(10)
+    pdf.set_font("Arial", "BU", 14)
+    pdf.cell(0, 10, "SURAT PERINTAH LEMBUR", ln=True, align="C")
     pdf.ln(5)
-    for k, v in row.items(): pdf.cell(0, 8, f"{k}: {v}", ln=True)
-    fn = f"SPL_{row['Nama']}_{row['Tanggal']}.pdf"
-    pdf.output(fn)
-    return fn
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(40, 10, " NAMA", border=1)
+    pdf.cell(150, 10, f" {row['Nama']}", border=1, ln=True)
+    pdf.cell(40, 10, " NRP/DEPT", border=1)
+    pdf.cell(70, 10, f" {row['NRP']} / {row['Section']}", border=1)
+    pdf.cell(30, 10, " SHIFT :", border=1)
+    pdf.cell(50, 10, f" {row['Shift']}", border=1, ln=True) 
+    total_lembur = hitung_total_lembur_str(row['Jam'])
+    pdf.cell(40, 10, " TANGGAL :", border=1)
+    pdf.cell(70, 10, f" {row['Tanggal']}", border=1)
+    pdf.cell(30, 10, " JAM :", border=1)
+    pdf.cell(50, 10, f" {row['Jam']} = {total_lembur}", border=1, ln=True)
+    pdf.cell(40, 10, " PERUSAHAAN :", border=1)
+    pdf.cell(150, 10, f" {row['Perusahaan']}", border=1, ln=True)
+    pdf.cell(190, 10, " Keterangan Lembur :", border="LTR", ln=True)
+    pdf.multi_cell(190, 10, f" {row['Alasan']}\n\n", border="LBR")
+    pdf.ln(10)
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(95, 5, "Diperintahkan Oleh,", align="C")
+    pdf.cell(95, 5, "Disetujui Oleh,", ln=True, align="C")
+    y_pos = pdf.get_y()
+    try:
+        if str(row['Waktu_GL']) != "nan" and row['Waktu_GL']: pdf.image("logo.png.png", x=35, y=y_pos + 2, w=35) 
+        if str(row['Waktu_SH']) != "nan" and row['Waktu_SH']: pdf.image("logo.png.png", x=130, y=y_pos + 2, w=35)
+    except: pass
+    pdf.ln(18) 
+    gl_sign = f"Digitally Signed: {row['Waktu_GL']}" if str(row['Waktu_GL']) != "nan" else ""
+    sh_sign = f"Digitally Signed: {row['Waktu_SH']}" if str(row['Waktu_SH']) != "nan" else ""
+    pdf.set_text_color(0, 0, 255)
+    pdf.set_font("Arial", "I", 8)
+    pdf.cell(95, 5, gl_sign, align="C")
+    pdf.cell(95, 5, sh_sign, align="C", ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.ln(8) 
+    nama_pengawas = row['Nama_GL'] if str(row['Nama_GL']) != "nan" and row['Nama_GL'] else "GL/UH"
+    nama_sh_raw = str(row['Nama_SH']) if 'Nama_SH' in row and pd.notna(row['Nama_SH']) and str(row['Nama_SH']) != "nan" else "Haris Abi Wibowo"
+    if "(PJS Section Head)" in nama_sh_raw:
+        nama_sh_final = nama_sh_raw.replace(" (PJS Section Head)", "").strip()
+        jabatan_sh = "PJS Section Head"
+    else:
+        nama_sh_final = nama_sh_raw
+        jabatan_sh = "Section Head"
+    pdf.set_font("Arial", "", 10)
+    pdf.cell(95, 5, "__________________________", align="C", ln=0)
+    pdf.cell(95, 5, "__________________________", align="C", ln=1)
+    pdf.set_font("Arial", "B", 9)
+    pdf.cell(95, 5, nama_pengawas, align="C") 
+    pdf.cell(95, 5, nama_sh_final, align="C", ln=1)
+    pdf.set_font("Arial", "", 8)
+    pdf.cell(95, 4, "GL / UH", align="C") 
+    pdf.cell(95, 4, jabatan_sh, align="C", ln=1)
+    safe_nama = "".join([c for c in str(row['Nama']) if c.isalpha() or c.isdigit() or c==' ']).strip()
+    filename = f"SPL {safe_nama} {row['Tanggal']}.pdf"
+    pdf.output(filename)
+    return filename
 
 def display_html_preview(row):
-    st.write(f"**Preview SPL: {row['Nama']}**")
-    st.json(row)
+    total_lembur = hitung_total_lembur_str(row['Jam'])
+    html_content = f"""
+    <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif;">
+        <div style="border: 1px solid black; padding: 10px; margin-bottom: 10px;"><b>PT. Saptaindra Sejati<br>Site Maco</b></div>
+        <h3 style="text-align: center; text-decoration: underline;">SURAT PERINTAH LEMBUR</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+            <tr><td style="border: 1px solid black; padding: 8px; width: 25%;"><b>NAMA</b></td><td style="border: 1px solid black; padding: 8px;" colspan="3">{row['Nama']}</td></tr>
+            <tr><td style="border: 1px solid black; padding: 8px;"><b>NRP/DEPT</b></td><td style="border: 1px solid black; padding: 8px;">{row['NRP']} / {row['Section']}</td><td style="border: 1px solid black; padding: 8px; width: 15%;"><b>SHIFT :</b></td><td style="border: 1px solid black; padding: 8px; width: 20%;">{row['Shift']}</td></tr>
+            <tr><td style="border: 1px solid black; padding: 8px;"><b>TANGGAL :</b></td><td style="border: 1px solid black; padding: 8px;">{row['Tanggal']}</td><td style="border: 1px solid black; padding: 8px;"><b>JAM :</b></td><td style="border: 1px solid black; padding: 8px;">{row['Jam']} = {total_lembur}</td></tr>
+            <tr><td style="border: 1px solid black; padding: 8px;"><b>PERUSAHAAN :</b></td><td style="border: 1px solid black; padding: 8px;" colspan="3">{row['Perusahaan']}</td></tr>
+            <tr><td style="border: 1px solid black; padding: 8px; height: 60px; vertical-align: top;" colspan="4"><b>Keterangan Lembur :</b><br><br>{row['Alasan']}</td></tr>
+        </table>
+    </div>
+    """
+    st.markdown(html_content, unsafe_allow_html=True)
 
 def proses_login(username_key, password_input):
     users_data = load_users()
     if username_key not in users_data: return False
-    u = users_data[username_key]
-    if u["blocked"]: return False
-    if str(password_input) == u["password"]:
-        u["failed_attempts"] = 0
+    user_info = users_data[username_key]
+    if user_info["blocked"]:
+        st.error(f"🚨 Akun Anda ({username_key}) telah DIBLOKIR!")
+        return False
+    if str(password_input) == str(user_info["password"]):
+        user_info["failed_attempts"] = 0
         save_users(users_data)
         return True
+    elif password_input != "":
+        user_info["failed_attempts"] += 1
+        if user_info["failed_attempts"] >= 3:
+            user_info["blocked"] = True
+            st.error(f"🚨 PERINGATAN: Sandi salah 3x. Akun {username_key} DIBLOKIR!")
+        else: st.error(f"❌ Sandi Salah! Percobaan: {user_info['failed_attempts']}/3")
+        save_users(users_data)
     return False
 
-# ROUTING
+# ==========================================
+# HALAMAN UTAMA (LANDING PAGE)
+# ==========================================
 if st.session_state.app_mode == "landing":
-    st.title("🏢 Portal SPL Digital PT. SIS")
-    c1, c2 = st.columns(2)
-    if c1.button("📝 PORTAL KARYAWAN", use_container_width=True):
-        st.session_state.role = "Karyawan"; st.session_state.logged_in = True; st.session_state.app_mode = "main"; st.rerun()
-    if c2.button("🔐 PORTAL MANAJEMEN", use_container_width=True):
-        st.session_state.app_mode = "login"; st.rerun()
+    st.markdown("<br><br><h1 style='text-align: center;'>🏢 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns([1, 4, 4, 1])
+    with col2:
+        st.success("📝 **PORTAL KARYAWAN**")
+        if st.button("Masuk ke Pembuatan Form SPL", use_container_width=True):
+            st.session_state.role = "Karyawan"
+            st.session_state.logged_in = True
+            st.session_state.app_mode = "main"
+            st.rerun()
+    with col3:
+        st.info("🔐 **PORTAL MANAJEMEN**")
+        if st.button("Masuk Halaman Login", use_container_width=True):
+            st.session_state.app_mode = "login"
+            st.rerun()
 
+# ==========================================
+# HALAMAN LOGIN
+# ==========================================
 elif st.session_state.app_mode == "login":
-    st.subheader("🔐 Login Manajemen")
-    if st.button("⬅️ Kembali"): st.session_state.app_mode = "landing"; st.rerun()
-    role = st.selectbox("Akses:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
-    if role != "Pilih...":
-        users_db = load_users()
-        u_list = [k for k, v in users_db.items() if v["role"] == role]
-        target = st.selectbox("User:", u_list)
-        pwd = st.text_input("Password", type="password")
-        if st.button("LOGIN", use_container_width=True):
-            if proses_login(target, pwd):
-                st.session_state.logged_in = True; st.session_state.role = role; st.session_state.username = target; st.session_state.app_mode = "main"; st.rerun()
+    st.markdown("<br><h2 style='text-align: center;'>🔐 Login Manajemen</h2><hr>", unsafe_allow_html=True)
+    if st.button("⬅️ Kembali ke Menu Utama"):
+        st.session_state.app_mode = "landing"
+        st.rerun()
+    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+    with col_l2:
+        role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
+        if role != "Pilih...":
+            users_db = load_users()
+            u_list = [k for k, v in users_db.items() if v["role"] == role]
+            target_user = st.selectbox("Pilih User", u_list) if role != "Section Head" and role != "Admin" else ("Section Head" if role == "Section Head" else "Administrator")
+            pwd = st.text_input("Password", type="password")
+            if st.button("LOGIN", use_container_width=True):
+                if proses_login(target_user, pwd):
+                    st.session_state.logged_in = True
+                    st.session_state.role = role
+                    st.session_state.username = target_user
+                    st.session_state.app_mode = "main"
+                    st.rerun()
 
+# ==========================================
+# HALAMAN DASHBOARD UTAMA
+# ==========================================
 elif st.session_state.app_mode == "main" and st.session_state.logged_in:
-    if st.button("🚪 Logout"): st.session_state.logged_in = False; st.session_state.app_mode = "landing"; st.rerun()
+    col_title, col_logout = st.columns([8, 2])
+    with col_title:
+        st.title(f"📄 Dashboard {st.session_state.role}" if st.session_state.role != "Karyawan" else "📄 Pengisian Form SPL")
+    with col_logout:
+        st.write("") 
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state.logged_in = False
+            st.session_state.role = ""
+            st.session_state.username = ""
+            st.session_state.app_mode = "landing"
+            st.cache_data.clear()
+            st.rerun()
+    st.write("---")
     
+    config_del = load_config()
+
+    # --- KARYAWAN ---
+    if st.session_state.role == "Karyawan":
+        with st.form("form_spl", clear_on_submit=True):
+            col1, col2 = st.columns(2)
+            nama = col1.text_input("Nama Karyawan *")
+            nrp = col2.text_input("NRP *") 
+            cs, cp = st.columns(2)
+            section = cs.selectbox("Section", ["Logistik"]) 
+            perusahaan = cp.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa"])
+            ct, ch = st.columns(2)
+            tgl = ct.date_input("Tanggal", value=get_wib_time().date(), disabled=True)
+            shift = ch.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
+            pengawas = st.selectbox("Pengawas (GL) Yang Bertugas", LIST_GL)
+            st.markdown("**Waktu Lembur:**")
+            cj1, cj2 = st.columns(2)
+            list_jam = [f"{i:02d}" for i in range(24)]
+            list_menit = [f"{i:02d}" for i in range(60)]
+            with cj1:
+                ja1, ja2 = st.columns(2)
+                jam_a = ja1.selectbox("Jam Mulai", list_jam)
+                menit_a = ja2.selectbox("Menit Mulai", list_menit)
+            with cj2:
+                jk3, jk4 = st.columns(2)
+                jam_k = jk3.selectbox("Jam Selesai", list_jam)
+                menit_k = jk4.selectbox("Menit Selesai", list_menit)
+            alasan = st.text_area("Keterangan Lembur *")
+            if st.form_submit_button("Kirim Pengajuan Lembur"):
+                if not nama.strip() or not nrp.strip() or not alasan.strip(): st.error("⚠️ Wajib diisi!")
+                else:
+                    df = get_db()
+                    new_data = {
+                        "ID": str(int(time.time())), "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
+                        "Jam": f"{jam_a}:{menit_a} - {jam_k}:{menit_k}", "Perusahaan": perusahaan, "Alasan": alasan, 
+                        "Pengawas_Tujuan": pengawas, "Status": "Pending GL", "Waktu_GL": "", "Nama_GL": "", "Waktu_SH": "", "Nama_SH": "", "Alasan_Tolak": ""
+                    }
+                    save_db(pd.concat([df, pd.DataFrame([new_data])], ignore_index=True))
+                    st.success(f"✅ Terkirim!")
+
+    # --- GL/UH ---
+    elif st.session_state.role == "GL/UH":
+        df_gl = get_db()
+        st.subheader("Menunggu Verifikasi Anda")
+        pending = df_gl[(df_gl["Status"] == "Pending GL") & (df_gl["Pengawas_Tujuan"] == st.session_state.username)]
+        if pending.empty: st.info("Tidak ada SPL baru.")
+        else:
+            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
+            for i, (idx, row) in enumerate(pending.iterrows(), 1):
+                cols = st.columns(10)
+                cols[0].write(str(i)); cols[1].write(row['Tanggal']); cols[2].write(row['Nama'])
+                if cols[8].button("Approve", key=f"gl_ap_{row['ID']}"):
+                    df_gl.loc[idx, ["Status", "Waktu_GL", "Nama_GL"]] = ["Pending SH", get_wib_time().strftime("%Y-%m-%d %H:%M"), st.session_state.username]
+                    save_db(df_gl); st.rerun()
+
+    # --- SECTION HEAD ---
+    elif st.session_state.role == "Section Head":
+        df_sh = get_db()
+        st.subheader("Verifikasi Akhir")
+        pending_sh = df_sh[df_sh["Status"] == "Pending SH"]
+        if pending_sh.empty: st.info("Tidak ada antrean.")
+        else:
+            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
+            for i, (idx, row) in enumerate(pending_sh.iterrows(), 1):
+                cols = st.columns(10)
+                cols[0].write(str(i)); cols[1].write(row['Tanggal']); cols[2].write(row['Nama'])
+                if cols[8].button("Approve", key=f"sh_ap_{row['ID']}"):
+                    df_sh.loc[idx, ["Status", "Waktu_SH", "Nama_SH"]] = ["Final Approved", get_wib_time().strftime("%Y-%m-%d %H:%M"), "Haris Abi Wibowo"]
+                    save_db(df_sh); st.rerun()
+
     # --- ADMIN ---
-    if st.session_state.role == "Admin":
-        st.title("📊 Database SPL Keseluruhan")
+    elif st.session_state.role == "Admin":
         df_admin = get_db()
+        st.title("📊 Database SPL Keseluruhan")
         f_mode = st.radio("Pilih Filter:", ["Semua Data", "Tanggal", "Bulan", "Tahun", "Range Tanggal"], horizontal=True)
         df_f = df_admin.copy()
-        
         if f_mode == "Tanggal":
-            d = st.date_input("Tanggal", value=get_wib_time().date())
-            df_f = df_f[df_f['Tanggal'] == str(d)]
+            df_f = df_f[df_f['Tanggal'] == str(st.date_input("Tanggal", value=get_wib_time().date()))]
         elif f_mode == "Bulan":
             m = st.selectbox("Bulan", ["01","02","03","04","05","06","07","08","09","10","11","12"], index=get_wib_time().month-1)
             df_f = df_f[df_f['Tanggal'].str.contains(f"-{m}-")]
         elif f_mode == "Tahun":
-            y = st.selectbox("Tahun", [str(i) for i in range(2024, 2030)], index=0)
+            y = st.selectbox("Tahun", [str(i) for i in range(2024, 2031)], index=0)
             df_f = df_f[df_f['Tanggal'].str.startswith(y)]
         elif f_mode == "Range Tanggal":
             r1, r2 = st.columns(2)
-            d1 = r1.date_input("Dari", value=get_wib_time().date()-timedelta(days=7))
-            d2 = r2.date_input("Sampai", value=get_wib_time().date())
+            d1, d2 = r1.date_input("Dari", value=get_wib_time().date()-timedelta(days=7)), r2.date_input("Sampai", value=get_wib_time().date())
             df_f = df_f[(df_f['Tanggal'] >= str(d1)) & (df_f['Tanggal'] <= str(d2))]
 
-        # FORMAT DATA UNTUK EXCEL & LAYAR (Urutan image_874655.png)
+        # FORMAT EXCEL image_874655.png
         df_f.insert(0, 'No.', range(1, len(df_f) + 1))
         df_f['Jam Awal'] = df_f['Jam'].apply(lambda x: x.split(' - ')[0] if ' - ' in str(x) else '')
         df_f['Jam Akhir'] = df_f['Jam'].apply(lambda x: x.split(' - ')[1] if ' - ' in str(x) else '')
         df_f['Total Lembur (Jam)'] = df_f['Jam'].apply(hitung_total_lembur_str)
-        
         cols_final = ['No.', 'Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam Awal', 'Jam Akhir', 'Total Lembur (Jam)', 'Perusahaan', 'Alasan', 'Status', 'Pengawas_Tujuan', 'Waktu_GL', 'Nama_GL', 'Waktu_SH', 'Nama_SH', 'Alasan_Tolak']
         for c in cols_final: 
             if c not in df_f.columns: df_f[c] = ""
         df_display = df_f[cols_final]
 
-        # DOWNLOAD EXCEL DI ATAS
+        # DOWNLOAD EXCEL
         out = io.BytesIO()
         with pd.ExcelWriter(out, engine='openpyxl') as wr: df_display.to_excel(wr, index=False)
         st.download_button("📥 Download Excel (.xlsx)", out.getvalue(), f"Rekap_{get_wib_time().strftime('%Y%m%d')}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        
         st.dataframe(df_display, use_container_width=True)
-
-    # --- GL/UH ---
-    elif st.session_state.role == "GL/UH":
-        st.subheader("Menunggu Verifikasi")
-        df = get_db()
-        pending = df[(df["Status"] == "Pending GL") & (df["Pengawas_Tujuan"] == st.session_state.username)]
-        if pending.empty: st.info("Kosong.")
-        else:
-            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
-            for i, (idx, row) in enumerate(pending.iterrows(), 1):
-                cols = st.columns(10)
-                cols[0].write(str(i)); cols[1].write(row['Tanggal']); cols[2].write(row['Nama'])
-                if cols[8].button("Approve", key=f"ap_{row['ID']}"):
-                    df.loc[idx, ["Status", "Waktu_GL", "Nama_GL"]] = ["Pending SH", get_wib_time().strftime("%Y-%m-%d %H:%M"), st.session_state.username]
-                    save_db(df); st.rerun()
-
-    # --- SECTION HEAD ---
-    elif st.session_state.role == "Section Head":
-        st.subheader("Verifikasi Akhir")
-        df = get_db()
-        pending = df[df["Status"] == "Pending SH"]
-        if pending.empty: st.info("Kosong.")
-        else:
-            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
-            for i, (idx, row) in enumerate(pending.iterrows(), 1):
-                cols = st.columns(10)
-                cols[0].write(str(i)); cols[1].write(row['Tanggal']); cols[2].write(row['Nama'])
-                if cols[8].button("Approve", key=f"sh_{row['ID']}"):
-                    df.loc[idx, ["Status", "Waktu_SH", "Nama_SH"]] = ["Final Approved", get_wib_time().strftime("%Y-%m-%d %H:%M"), "Haris Abi Wibowo"]
-                    save_db(df); st.rerun()
-
-    # --- KARYAWAN ---
-    elif st.session_state.role == "Karyawan":
-        with st.form("f"):
-            n = st.text_input("Nama"); nr = st.text_input("NRP"); s = st.selectbox("Shift", ["Shift 1", "Shift 2"])
-            p = st.selectbox("Pengawas", load_users().keys())
-            if st.form_submit_button("Kirim"):
-                db = get_db()
-                new = {"ID": str(int(time.time())), "Nama": n, "NRP": nr, "Shift": s, "Tanggal": str(get_wib_time().date()), "Status": "Pending GL", "Pengawas_Tujuan": p}
-                save_db(pd.concat([db, pd.DataFrame([new])], ignore_index=True)); st.success("Terkirim")
