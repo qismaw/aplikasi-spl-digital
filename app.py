@@ -404,13 +404,13 @@ if st.session_state.app_mode == "landing":
         <div style="text-align: center; margin-bottom: 25px;">
             <h1 style="color: white; font-weight: 800; font-size: 42px; letter-spacing: 2px;">
                 <span style="color: #0d6efd;">✓</span> OVERTIX
-            </h1>
             <div style="display: flex; justify-content: center; align-items: center; margin: 15px 0;">
             <div style="height: 1px; width: 50px; background: rgba(255,255,255,0.2);"></div>
             <span style="color: #0060FF; font-weight: 600; margin: 0 15px; font-size: 13px;">PT SAPTAINDRA SEJATI</span>
             <div style="height: 1px; width: 50px; background: rgba(255,255,255,0.2);"></div>
             <p style="color: #a0aabf; font-size: 16px; margin-top: -10px; letter-spacing: 1px;">SMART OVERTIME EXECUTION SYSTEM</p>
             <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 20px 0;">
+            </h1>
             <h3 style="color: white; margin-top: 20px; font-size: 22px;">Selamat Datang!</h3>
              <p style="color: #6c757d; font-size: 14px;">Portal digital untuk input, Approval, dan dokumentasi Surat Perintah Lembur (SPL):</p>
             <p style="color: #6c757d; font-size: 14px;">Silakan pilih portal akses di bawah ini:</p>
