@@ -425,7 +425,8 @@ if st.session_state.app_mode == "landing":
             st.rerun()
             
         st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 40px;'>© 2026 PT. Saptaindra Sejati. All rights reserved.</p>", unsafe_allow_html=True)
-
+        st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 20px;'>create by Q. Rosalina W..</p>", unsafe_allow_html=True)
+        
 elif st.session_state.app_mode == "login":
     st.write("<br><br><br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1.2, 1])
