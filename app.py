@@ -14,14 +14,15 @@ from google.oauth2.service_account import Credentials
 # ==========================================
 SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
-# Konfigurasi Halaman & CSS Kustom
+# Konfigurasi Halaman
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
+# ==========================================
+# CSS GLOBAL (HILANGKAN MENU & PERBAIKI TABEL)
+# ==========================================
 st.markdown("""
 <style>
-/* ==========================================================
-   1. SEMBUNYIKAN MENU STREAMLIT, GITHUB ICON, & TOOLBAR CLOUD
-   ========================================================== */
+/* 1. SEMBUNYIKAN MENU STREAMLIT, GITHUB ICON, & TOOLBAR CLOUD */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
@@ -29,18 +30,13 @@ header {visibility: hidden;}
 [data-testid="stToolbar"] {display: none !important; visibility: hidden !important;}
 [data-testid="stHeader"] {display: none !important; visibility: hidden !important;}
 
-/* 2. Warna Tombol Umum */
-div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
-div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
+/* 2. WARNA TOMBOL UTAMA TABEL */
+div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; border:none !important;}
+div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; border:none !important;}
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
-/* ==========================================================
-   3. STYLING TABEL: ANTI TUMPANG TINDIH & LEBIH RAPI
-   ========================================================== */
-@media (max-width: 768px) {
-    body, .stApp { overflow-x: hidden !important; }
-}
-
+/* 3. STYLING TABEL DASHBOARD AGAR RAPI (ANTI TUMPANG TINDIH) */
+@media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     background-color: rgba(255,255,255,0.03) !important;
     border: 1px solid rgba(255,255,255,0.2) !important;
@@ -49,30 +45,15 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     margin-bottom: 20px !important;
     overflow-x: auto !important;
 }
-
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    min-width: 1000px !important; 
-    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-    padding: 12px 0px !important; 
-    gap: 0px !important;
-    align-items: center !important;
+    display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;
+    min-width: 1000px !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 12px 0px !important; gap: 0px !important; align-items: center !important;
 }
-
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child {
-    border-bottom: none !important;
-}
-
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child { border-bottom: none !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
-    flex: 0 0 auto !important;
-    padding: 0 10px !important;
-    display: flex !important;
-    align-items: center !important;
+    flex: 0 0 auto !important; padding: 0 10px !important; display: flex !important; align-items: center !important;
 }
-
-/* Lebar Kolom Presisi */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 45px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; }
@@ -83,12 +64,7 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) di
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 75px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 110px !important; }
-
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
-    margin-bottom: 0 !important;
-    font-size: 14px !important;
-    white-space: nowrap !important;
-}
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p { margin-bottom: 0 !important; font-size: 14px !important; white-space: nowrap !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -107,7 +83,6 @@ def get_wib_time(): return datetime.utcnow() + timedelta(hours=7)
 # KONEKSI KE GOOGLE SHEETS
 # ==========================================
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-
 @st.cache_resource
 def get_gsheets_client():
     try:
@@ -143,10 +118,8 @@ def load_users():
     user_dict = {}
     for row in data:
         user_dict[str(row["Username"])] = {
-            "password": str(row["Password"]), 
-            "failed_attempts": int(row["Gagal"]), 
-            "blocked": str(row["Blocked"]).lower() == "true", 
-            "role": str(row["Role"])
+            "password": str(row["Password"]), "failed_attempts": int(row["Gagal"]), 
+            "blocked": str(row["Blocked"]).lower() == "true", "role": str(row["Role"])
         }
     return user_dict
 
@@ -204,9 +177,6 @@ def save_db(df):
     safe_update(sheet, data_to_save)
     st.cache_data.clear()
 
-# ==========================================
-# FUNGSI PENDUKUNG
-# ==========================================
 def hitung_total_lembur_str(jam_str):
     if pd.notna(jam_str) and " - " in str(jam_str):
         try:
@@ -334,56 +304,134 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HALAMAN UTAMA (LANDING PAGE)
+# HALAMAN UTAMA (LANDING & LOGIN) - MODERN THEME
 # ==========================================
-if st.session_state.app_mode == "landing":
-    st.markdown("<br><br><h1 style='text-align: center;'>🏢 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: gray; margin-bottom: 50px;'>Silakan pilih gerbang akses Anda di bawah ini:</p>", unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns([1, 4, 4, 1])
-    with col2:
-        st.success("📝 **PORTAL KARYAWAN**")
-        st.write("Masuk ke sini untuk mengisi formulir lembur. Tanpa perlu *login* atau kata sandi.")
-        st.write("")
-        if st.button("Masuk ke Pembuatan Form SPL", use_container_width=True):
-            st.session_state.role = "Karyawan"
-            st.session_state.logged_in = True
-            st.session_state.app_mode = "main"
-            st.rerun()
-    with col3:
-        st.info("🔐 **PORTAL MANAJEMEN**")
-        st.write("Khusus untuk GL/UH, Section Head, dan Administrator untuk melakukan verifikasi.")
-        st.write("")
-        if st.button("Masuk Halaman Login", use_container_width=True):
-            st.session_state.app_mode = "login"
-            st.rerun()
+if st.session_state.app_mode in ["landing", "login"]:
+    # CSS KHUSUS HALAMAN DEPAN (Desain Overtix)
+    st.markdown("""
+    <style>
+    .stApp {
+        background: radial-gradient(circle at top, #0f162e 0%, #060913 100%) !important;
+        color: white !important;
+    }
+    
+    /* Styling Card/Box */
+    div[data-testid="column"]:nth-child(2) {
+        background: rgba(20, 25, 45, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 20px !important;
+        padding: 30px !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    /* Styling Input Field */
+    .stSelectbox > div > div, .stTextInput > div > div > input {
+        background-color: rgba(10, 15, 30, 0.8) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+    }
+    
+    /* Label teks */
+    .stSelectbox label, .stTextInput label {
+        color: #adb5bd !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Styling Tombol Login / Landing Utama */
+    div[data-testid="stButton"] button {
+        background: linear-gradient(90deg, #0d6efd, #0a58ca) !important;
+        color: white !important;
+        border: none !important;
+        width: 100% !important;
+        border-radius: 8px !important;
+        font-weight: bold !important;
+        font-size: 16px !important;
+        padding: 10px !important;
+        transition: 0.3s ease !important;
+    }
+    div[data-testid="stButton"] button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4) !important;
+    }
+    
+    /* Tombol abu-abu untuk kembali/pilih mode lain */
+    div[data-testid="stButton"] button:has(p:contains("Kembali")),
+    div[data-testid="stButton"] button:has(p:contains("Karyawan")) {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        box-shadow: none !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-# ==========================================
-# HALAMAN LOGIN MANAJEMEN
-# ==========================================
-elif st.session_state.app_mode == "login":
-    st.markdown("<br><h2 style='text-align: center;'>🔐 Login Manajemen</h2><hr>", unsafe_allow_html=True)
-    col_back, _ = st.columns([2, 8])
-    with col_back:
-        if st.button("⬅️ Kembali ke Menu Utama"):
-            st.session_state.app_mode = "landing"
-            st.rerun()
-    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
-    with col_l2:
-        role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
-        if role != "Pilih...":
-            users_db = load_users()
-            u_list = [k for k, v in users_db.items() if v["role"] == role]
-            target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
-            pwd = st.text_input("Password", type="password")
+    st.write("<br><br><br>", unsafe_allow_html=True) # Spacer atas
+    
+    if st.session_state.app_mode == "landing":
+        # Desain Landing
+        col1, col2, col3 = st.columns([1, 1.2, 1])
+        with col2:
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
+                    <span style="color: #0d6efd;">✓</span> SPL DIGITAL
+                </h1>
+                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Smart Overtime Execution System</p>
+                <h3 style="color: white; margin-top: 30px; font-size: 22px;">Selamat Datang!</h3>
+                <p style="color: #6c757d; font-size: 14px;">Silakan pilih portal untuk melanjutkan</p>
+            </div>
+            """, unsafe_allow_html=True)
             
-            # --- TOMBOL BERSIH: HANYA TULISAN "LOGIN" ---
-            if st.button("LOGIN", use_container_width=True):
-                if proses_login(target_user, pwd):
-                    st.session_state.logged_in = True
-                    st.session_state.role = role
-                    st.session_state.username = target_user
-                    st.session_state.app_mode = "main"
-                    st.rerun()
+            if st.button("Masuk Portal Manajemen", use_container_width=True):
+                st.session_state.app_mode = "login"
+                st.rerun()
+                
+            st.write("<br>", unsafe_allow_html=True)
+            
+            if st.button("Masuk Portal Karyawan", use_container_width=True):
+                st.session_state.role = "Karyawan"
+                st.session_state.logged_in = True
+                st.session_state.app_mode = "main"
+                st.rerun()
+                
+            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>© 2026 PT. Saptaindra Sejati. All rights reserved.</p>", unsafe_allow_html=True)
+
+    elif st.session_state.app_mode == "login":
+        # Desain Login
+        col1, col2, col3 = st.columns([1, 1.2, 1])
+        with col2:
+            st.markdown("""
+            <div style="text-align: center; margin-bottom: 25px;">
+                <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
+                    <span style="color: #0d6efd;">✓</span> SPL DIGITAL
+                </h1>
+                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Portal Akses Manajemen</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
+            
+            if role != "Pilih...":
+                users_db = load_users()
+                u_list = [k for k, v in users_db.items() if v["role"] == role]
+                target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
+                pwd = st.text_input("Password", type="password")
+                
+                st.write("<br>", unsafe_allow_html=True)
+                if st.button("LOGIN", use_container_width=True):
+                    if proses_login(target_user, pwd):
+                        st.session_state.logged_in = True
+                        st.session_state.role = role
+                        st.session_state.username = target_user
+                        st.session_state.app_mode = "main"
+                        st.rerun()
+                        
+            st.write("<br>", unsafe_allow_html=True)
+            if st.button("⬅️ Kembali"):
+                st.session_state.app_mode = "landing"
+                st.rerun()
 
 # ==========================================
 # HALAMAN DASHBOARD UTAMA
@@ -754,10 +802,10 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                 df_excel.to_excel(writer, index=False, sheet_name='Rekap_SPL')
             excel_data = buffer.getvalue()
             
-            # TOMBOL DOWNLOAD DI ATAS TABEL
+            # TOMBOL EXCEL DI ATAS TABEL
             st.download_button("📥 Download Tabel di Bawah (Format .xlsx)", data=excel_data, file_name=f"{nama_file_excel}.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             
-            # --- TAMPILAN DASHBOARD NATIVE ---
+            # --- TAMPILAN DASHBOARD ---
             tabel_tampil = df_admin[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']].copy()
             tabel_tampil.index = range(1, len(tabel_tampil) + 1)
             st.dataframe(tabel_tampil, use_container_width=True)
@@ -805,7 +853,6 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** ➔ Ditolak oleh: **{penolak}** | **Alasan:** {alasan}")
             st.markdown("---")
             
-
         # --- MANAJEMEN AKUN ---
         st.subheader("🔐 Manajemen Keamanan Akun")
         db_admin_users = load_users()
