@@ -16,6 +16,38 @@ SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
+# Tambahkan ini untuk memperbaiki warna teks di dalam kotak login
+st.markdown("""
+<style>
+    /* MENGUBAH TULISAN DALAM KOTAK DROPDOWN JABATAN & USER AGAR PUTIH */
+    div[data-baseweb="select"] > div {
+        color: white !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* MENGUBAH TULISAN DALAM KOTAK PASSWORD AGAR PUTIH */
+    input[data-testid="stTextInputEnterChat"] {
+        color: white !important;
+    }
+    
+    /* UNTUK SEMUA INPUT TEKS (PASSWORD/USER) */
+    .stTextInput input {
+        color: white !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* MENGUBAH WARNA TEKS SAAT KITA MENGETIK */
+    input {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+    }
+
+    /* MENGUBAH WARNA TEKS LIST PILIHAN DI DALAM DROPDOWN */
+    div[data-baseweb="popover"] li {
+        color: white !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ==========================================
 # CSS GLOBAL (HILANGKAN MENU & PERBAIKI TABEL)
@@ -409,7 +441,7 @@ if st.session_state.app_mode in ["landing", "login"]:
                 <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
                     <span style="color: #0d6efd;">✓</span> SPL DIGITAL
                 </h1>
-                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Portal Akses Manajemen</p>
+                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Portal Approval</p>
             </div>
             """, unsafe_allow_html=True)
             
