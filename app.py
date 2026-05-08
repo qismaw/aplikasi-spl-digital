@@ -394,65 +394,63 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HALAMAN UTAMA (LANDING & LOGIN) - OVERTIX THEME
+# HALAMAN UTAMA (LANDING PAGE)
 # ==========================================
 if st.session_state.app_mode == "landing":
-    st.write("<br><br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    st.write("<br><br>", unsafe_allow_html=True)
+    col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
+    with col_img2:
+        try:
+            st.image("OVERTIX.png", use_container_width=True)
+        except:
+            st.markdown("<h1 style='text-align: center;'>🏢 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
+            
+    st.markdown("<p style='text-align: center; color: gray; margin-bottom: 50px;'>Silakan pilih gerbang akses Anda di bawah ini:</p>", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns([1, 4, 4, 1])
     with col2:
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <h1 style="color: white; font-weight: 800; font-size: 42px; letter-spacing: 2px;">
-                <span style="color: #0d6efd;">✓</span> OVERTIX
-            <div style="display: flex; justify-content: center; align-items: center; margin: 15px 0;">
-            <div style="height: 1px; width: 50px; background: rgba(255,255,255,0.2);"></div>
-            <span style="color: #0060FF; font-weight: 600; margin: 0 15px; font-size: 13px;">PT SAPTAINDRA SEJATI</span>
-            <div style="height: 1px; width: 50px; background: rgba(255,255,255,0.2);"></div>
-            <p style="color: #a0aabf; font-size: 16px; margin-top: -10px; letter-spacing: 1px;">SMART OVERTIME EXECUTION SYSTEM</p>
-            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 20px 0;">
-            </h1>
-            <h3 style="color: white; margin-top: 20px; font-size: 22px;">Selamat Datang!</h3>
-             <p style="color: #6c757d; font-size: 14px;">Portal digital untuk input, Approval, dan dokumentasi Surat Perintah Lembur (SPL):</p>
-            <p style="color: #6c757d; font-size: 14px;">Silakan pilih portal akses di bawah ini:</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("📝 Masuk Portal Karyawan", use_container_width=True):
+        st.success("📝 **PORTAL KARYAWAN**")
+        st.write("Masuk ke sini untuk mengisi formulir lembur. Tanpa perlu *login* atau kata sandi.")
+        st.write("")
+        if st.button("Masuk ke Pembuatan Form SPL", use_container_width=True):
             st.session_state.role = "Karyawan"
             st.session_state.logged_in = True
             st.session_state.app_mode = "main"
             st.rerun()
-        
-        st.write("<br>", unsafe_allow_html=True)
-        
-        if st.button("🔐 Masuk Portal Manajemen", use_container_width=True):
+    with col3:
+        st.info("🔐 **PORTAL MANAJEMEN**")
+        st.write("Khusus untuk GL/UH, Section Head, dan Administrator untuk melakukan verifikasi.")
+        st.write("")
+        if st.button("Masuk Halaman Login", use_container_width=True):
             st.session_state.app_mode = "login"
             st.rerun()
-            
-        st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 40px;'>© 2026 PT. Saptaindra Sejati. All rights reserved.</p>", unsafe_allow_html=True)
 
+# ==========================================
+# HALAMAN LOGIN MANAJEMEN
+# ==========================================
 elif st.session_state.app_mode == "login":
-    st.write("<br><br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1.2, 1])
-    with col2:
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <h1 style="color: white; font-weight: 800; font-size: 36px; letter-spacing: 1px;">
-                <span style="color: #0d6efd;">✓</span> OVERTIX
-            </h1>
-            <p style="color: #a0aabf; font-size: 15px; margin-top: -10px;">Portal Approval Manajemen</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
+    st.write("<br><br>", unsafe_allow_html=True)
+    col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
+    with col_img2:
+        try:
+            st.image("OVERTIX.png", use_container_width=True)
+        except:
+            st.markdown("<h2 style='text-align: center;'>🔐 Login Manajemen</h2>", unsafe_allow_html=True)
+    st.markdown("<hr>", unsafe_allow_html=True)
+    
+    col_back, _ = st.columns([2, 8])
+    with col_back:
+        if st.button("⬅️ Kembali ke Menu Utama"):
+            st.session_state.app_mode = "landing"
+            st.rerun()
+    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+    with col_l2:
         role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
-        
         if role != "Pilih...":
             users_db = load_users()
             u_list = [k for k, v in users_db.items() if v["role"] == role]
             target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
             pwd = st.text_input("Password", type="password")
             
-            st.write("<br>", unsafe_allow_html=True)
             if st.button("LOGIN", use_container_width=True):
                 if proses_login(target_user, pwd):
                     st.session_state.logged_in = True
@@ -460,11 +458,6 @@ elif st.session_state.app_mode == "login":
                     st.session_state.username = target_user
                     st.session_state.app_mode = "main"
                     st.rerun()
-                    
-        st.write("<br>", unsafe_allow_html=True)
-        if st.button("⬅️ Kembali ke Beranda", use_container_width=True):
-            st.session_state.app_mode = "landing"
-            st.rerun()
 
 # ==========================================
 # HALAMAN DASHBOARD UTAMA
