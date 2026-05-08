@@ -376,27 +376,27 @@ if st.session_state.app_mode in ["landing", "login"]:
             st.markdown("""
             <div style="text-align: center; margin-bottom: 25px;">
                 <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
-                    <span style="color: #0d6efd;">✓</span> SPL DIGITAL
+                    <span style="color: #0d6efd;">✓</span> OVERTIX
                 </h1>
                 <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Smart Overtime Execution System</p>
                 <h3 style="color: white; margin-top: 30px; font-size: 22px;">Selamat Datang!</h3>
                 <p style="color: #6c757d; font-size: 14px;">Silakan pilih portal untuk melanjutkan</p>
             </div>
             """, unsafe_allow_html=True)
-            
-            if st.button("Masuk Portal Manajemen", use_container_width=True):
-                st.session_state.app_mode = "login"
-                st.rerun()
-                
-            st.write("<br>", unsafe_allow_html=True)
-            
-            if st.button("Masuk Portal Karyawan", use_container_width=True):
+
+            if st.button("Input SPL", use_container_width=True):
                 st.session_state.role = "Karyawan"
                 st.session_state.logged_in = True
                 st.session_state.app_mode = "main"
                 st.rerun()
+            
+            if st.button("Masuk Portal Approval", use_container_width=True):
+                st.session_state.app_mode = "login"
+                st.rerun()
                 
-            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>© 2026 PT. Saptaindra Sejati. All rights reserved.</p>", unsafe_allow_html=True)
+            st.write("<br>", unsafe_allow_html=True)
+                
+            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>© 2026 PT. Saptaindra Sejati. All rights reserved. create by QismaWahda</p>", unsafe_allow_html=True)
 
     elif st.session_state.app_mode == "login":
         # Desain Login
