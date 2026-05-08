@@ -14,29 +14,23 @@ from google.oauth2.service_account import Credentials
 # ==========================================
 SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
-# Konfigurasi Halaman
+# Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
-# ==========================================
-# CSS GLOBAL (HILANGKAN MENU & PERBAIKI TABEL)
-# ==========================================
 st.markdown("""
 <style>
-/* 1. SEMBUNYIKAN MENU STREAMLIT, GITHUB ICON, & TOOLBAR CLOUD */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-.stDeployButton {display: none !important;}
-[data-testid="stToolbar"] {display: none !important; visibility: hidden !important;}
-[data-testid="stHeader"] {display: none !important; visibility: hidden !important;}
-
-/* 2. WARNA TOMBOL UTAMA TABEL */
-div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; border:none !important;}
-div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; border:none !important;}
+/* 1. Warna Tombol Umum */
+div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
+div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
-/* 3. STYLING TABEL DASHBOARD AGAR RAPI (ANTI TUMPANG TINDIH) */
-@media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
+/* ==========================================================
+   PERBAIKAN TABEL HP: ANTI TUMPANG TINDIH & LEBIH RAPI
+   ========================================================== */
+@media (max-width: 768px) {
+    body, .stApp { overflow-x: hidden !important; }
+}
+
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     background-color: rgba(255,255,255,0.03) !important;
     border: 1px solid rgba(255,255,255,0.2) !important;
@@ -44,16 +38,32 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     padding: 5px !important;
     margin-bottom: 20px !important;
     overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
 }
+
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
-    display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;
-    min-width: 1000px !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-    padding: 12px 0px !important; gap: 0px !important; align-items: center !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    min-width: 950px !important; 
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 12px 0px !important; 
+    gap: 0px !important;
+    align-items: center !important;
 }
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child { border-bottom: none !important; }
+
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child {
+    border-bottom: none !important;
+}
+
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
-    flex: 0 0 auto !important; padding: 0 10px !important; display: flex !important; align-items: center !important;
+    flex: 0 0 auto !important;
+    padding: 0 10px !important;
+    display: flex !important;
+    align-items: center !important;
 }
+
+/* Lebar Kolom Presisi */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 45px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; }
@@ -64,95 +74,105 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) di
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 75px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 110px !important; }
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p { margin-bottom: 0 !important; font-size: 14px !important; white-space: nowrap !important; }
+
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
+    margin-bottom: 0 !important;
+    font-size: 14px !important;
+    white-space: nowrap !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
 # SETUP SESSION STATE & ROUTING
 # ==========================================
-if "app_mode" not in st.session_state: st.session_state.app_mode = "landing"
+if "app_mode" not in st.session_state:
+    st.session_state.app_mode = "landing"
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.role = ""
     st.session_state.username = "" 
 
-def get_wib_time(): return datetime.utcnow() + timedelta(hours=7)
+def get_wib_time():
+    return datetime.utcnow() + timedelta(hours=7)
 
 # ==========================================
 # KONEKSI KE GOOGLE SHEETS
 # ==========================================
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
 @st.cache_resource
 def get_gsheets_client():
     try:
         creds_dict = json.loads(st.secrets["gcp_credentials"])
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
-        return gspread.authorize(creds)
+        client = gspread.authorize(creds)
+        return client
     except Exception as e:
-        st.error(f"Gagal memuat kredensial: {e}")
+        st.error(f"Gagal memuat kredensial dari Streamlit Secrets. Error: {e}")
         st.stop()
 
 def get_worksheet(sheet_name):
     client = get_gsheets_client()
     try:
         sh = client.open_by_key(SHEET_ID)
-        try: return sh.worksheet(sheet_name)
-        except: return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
+        try:
+            return sh.worksheet(sheet_name)
+        except:
+            return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
     except Exception as e:
-        st.error(f"Gagal membuka Spreadsheet: {e}")
+        st.error(f"Gagal membuka Spreadsheet. Error Sistem: {e}")
         st.stop()
 
 def safe_update(sheet, data, range_name="A1"):
-    try: sheet.update(values=data, range_name=range_name)
-    except TypeError: sheet.update(range_name, data)
+    try:
+        sheet.update(values=data, range_name=range_name)
+    except TypeError:
+        sheet.update(range_name, data)
 
 # ==========================================
-# DATABASE PENGGUNA
+# DATABASE PENGGUNA (G-SHEETS) DENGAN CACHE
 # ==========================================
 @st.cache_data(ttl=60)
 def load_users():
     sheet = get_worksheet("Users")
     data = sheet.get_all_records()
-    if not data: return {}
-    user_dict = {}
-    for row in data:
-        user_dict[str(row["Username"])] = {
-            "password": str(row["Password"]), "failed_attempts": int(row["Gagal"]), 
-            "blocked": str(row["Blocked"]).lower() == "true", "role": str(row["Role"])
+    if not data:
+        default_users = {
+            "Bapak Andi (GL 1)": {"password": "andi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Bapak Budi (GL 2)": {"password": "budi123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Bapak Citra (GL 3)": {"password": "citra123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Section Head": {"password": "sh123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
+            "Administrator": {"password": "admin123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
         }
-    return user_dict
+        sheet.clear()
+        rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
+        for k, v in default_users.items():
+            rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
+        safe_update(sheet, rows)
+        return default_users
+    else:
+        user_dict = {}
+        for row in data:
+            user_dict[str(row["Username"])] = {
+                "password": str(row["Password"]),
+                "failed_attempts": int(row["Gagal"]),
+                "blocked": str(row["Blocked"]).lower() == "true",
+                "role": str(row["Role"])
+            }
+        return user_dict
 
 def save_users(users_data):
     sheet = get_worksheet("Users")
     sheet.clear()
     rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
-    for k, v in users_data.items(): rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
+    for k, v in users_data.items():
+        rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
     safe_update(sheet, rows)
     st.cache_data.clear()
-
-@st.cache_data(ttl=60)
-def load_config():
-    sheet = get_worksheet("Config")
-    data = sheet.get_all_records()
-    if not data: return {"status_aktif": False, "pjs_nama": ""}
-    row = data[0]
-    return {"status_aktif": str(row["status_aktif"]).lower() == "true", "pjs_nama": str(row["pjs_nama"])}
-
-def save_config(config):
-    sheet = get_worksheet("Config")
-    sheet.clear()
-    rows = [["status_aktif", "pjs_nama"], [str(config["status_aktif"]), config["pjs_nama"]]]
-    safe_update(sheet, rows)
-    st.cache_data.clear()
-
-try:
-    users_db = load_users()
-    LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
-except: LIST_GL = ["Bapak Andi (GL 1)"]
 
 # ==========================================
-# DATABASE SPL 
+# DATABASE SPL (G-SHEETS) DENGAN CACHE
 # ==========================================
 @st.cache_data(ttl=15)
 def get_db():
@@ -166,7 +186,8 @@ def get_db():
     else:
         df = pd.DataFrame(data)
         for c in cols:
-            if c not in df.columns: df[c] = ""
+            if c not in df.columns:
+                df[c] = ""
         return df.astype(str)
 
 def save_db(df):
@@ -177,6 +198,41 @@ def save_db(df):
     safe_update(sheet, data_to_save)
     st.cache_data.clear()
 
+# ==========================================
+# KONFIGURASI PENDELEGASIAN DENGAN CACHE
+# ==========================================
+@st.cache_data(ttl=60)
+def load_config():
+    sheet = get_worksheet("Config")
+    data = sheet.get_all_records()
+    if not data:
+        default_cfg = {"status_aktif": False, "pjs_nama": ""}
+        sheet.clear()
+        safe_update(sheet, [["status_aktif", "pjs_nama"], [str(default_cfg["status_aktif"]), default_cfg["pjs_nama"]]])
+        return default_cfg
+    else:
+        row = data[0]
+        return {"status_aktif": str(row["status_aktif"]).lower() == "true", "pjs_nama": str(row["pjs_nama"])}
+
+def save_config(config):
+    sheet = get_worksheet("Config")
+    sheet.clear()
+    rows = [["status_aktif", "pjs_nama"], [str(config["status_aktif"]), config["pjs_nama"]]]
+    safe_update(sheet, rows)
+    st.cache_data.clear()
+
+# ==========================================
+# MUAT DATA UMUM
+# ==========================================
+try:
+    users_db = load_users()
+    LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
+except:
+    LIST_GL = ["Bapak Andi (GL 1)", "Bapak Budi (GL 2)", "Bapak Citra (GL 3)"]
+
+# ==========================================
+# FUNGSI PENDUKUNG (Hitung Jam & PDF)
+# ==========================================
 def hitung_total_lembur_str(jam_str):
     if pd.notna(jam_str) and " - " in str(jam_str):
         try:
@@ -244,6 +300,9 @@ def create_pdf(row):
     if "(PJS Section Head)" in nama_sh_raw:
         nama_sh_final = nama_sh_raw.replace(" (PJS Section Head)", "").strip()
         jabatan_sh = "PJS Section Head"
+    elif "(Pjs. Sect Head)" in nama_sh_raw: 
+        nama_sh_final = nama_sh_raw.replace(" (Pjs. Sect Head)", "").strip()
+        jabatan_sh = "PJS Section Head"
     else:
         nama_sh_final = nama_sh_raw
         jabatan_sh = "Section Head"
@@ -287,7 +346,7 @@ def proses_login(username_key, password_input):
     if user_info["blocked"]:
         st.error(f"🚨 Akun Anda ({username_key}) telah DIBLOKIR. Hubungi Administrator!")
         return False
-    if str(password_input) == str(user_info["password"]):
+    if str(password_input) == user_info["password"]:
         user_info["failed_attempts"] = 0
         save_users(users_data)
         return True
@@ -304,134 +363,56 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HALAMAN UTAMA (LANDING & LOGIN) - MODERN THEME
+# HALAMAN UTAMA (LANDING PAGE)
 # ==========================================
-if st.session_state.app_mode in ["landing", "login"]:
-    # CSS KHUSUS HALAMAN DEPAN (Desain Overtix)
-    st.markdown("""
-    <style>
-    .stApp {
-        background: radial-gradient(circle at top, #0f162e 0%, #060913 100%) !important;
-        color: white !important;
-    }
-    
-    /* Styling Card/Box */
-    div[data-testid="column"]:nth-child(2) {
-        background: rgba(20, 25, 45, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 20px !important;
-        padding: 30px !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
-        backdrop-filter: blur(10px) !important;
-    }
-    
-    /* Styling Input Field */
-    .stSelectbox > div > div, .stTextInput > div > div > input {
-        background-color: rgba(10, 15, 30, 0.8) !important;
-        color: white !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 8px !important;
-        padding: 10px !important;
-    }
-    
-    /* Label teks */
-    .stSelectbox label, .stTextInput label {
-        color: #adb5bd !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Styling Tombol Login / Landing Utama */
-    div[data-testid="stButton"] button {
-        background: linear-gradient(90deg, #0d6efd, #0a58ca) !important;
-        color: white !important;
-        border: none !important;
-        width: 100% !important;
-        border-radius: 8px !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-        padding: 10px !important;
-        transition: 0.3s ease !important;
-    }
-    div[data-testid="stButton"] button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4) !important;
-    }
-    
-    /* Tombol abu-abu untuk kembali/pilih mode lain */
-    div[data-testid="stButton"] button:has(p:contains("Kembali")),
-    div[data-testid="stButton"] button:has(p:contains("Karyawan")) {
-        background: rgba(255, 255, 255, 0.1) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        box-shadow: none !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+if st.session_state.app_mode == "landing":
+    st.markdown("<br><br><h1 style='text-align: center;'>🏢 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: gray; margin-bottom: 50px;'>Silakan pilih gerbang akses Anda di bawah ini:</p>", unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns([1, 4, 4, 1])
+    with col2:
+        st.success("📝 **PORTAL KARYAWAN**")
+        st.write("Masuk ke sini untuk mengisi formulir lembur. Tanpa perlu *login* atau kata sandi.")
+        st.write("")
+        if st.button("Masuk ke Pembuatan Form SPL", use_container_width=True):
+            st.session_state.role = "Karyawan"
+            st.session_state.logged_in = True
+            st.session_state.app_mode = "main"
+            st.rerun()
+    with col3:
+        st.info("🔐 **PORTAL MANAJEMEN**")
+        st.write("Khusus untuk GL/UH, Section Head, dan Administrator untuk melakukan verifikasi.")
+        st.write("")
+        if st.button("Masuk Halaman Login", use_container_width=True):
+            st.session_state.app_mode = "login"
+            st.rerun()
 
-    st.write("<br><br><br>", unsafe_allow_html=True) # Spacer atas
-    
-    if st.session_state.app_mode == "landing":
-        # Desain Landing
-        col1, col2, col3 = st.columns([1, 1.2, 1])
-        with col2:
-            st.markdown("""
-            <div style="text-align: center; margin-bottom: 25px;">
-                <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
-                    <span style="color: #0d6efd;">✓</span> SPL DIGITAL
-                </h1>
-                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Smart Overtime Execution System</p>
-                <h3 style="color: white; margin-top: 30px; font-size: 22px;">Selamat Datang!</h3>
-                <p style="color: #6c757d; font-size: 14px;">Silakan pilih portal untuk melanjutkan</p>
-            </div>
-            """, unsafe_allow_html=True)
+# ==========================================
+# HALAMAN LOGIN MANAJEMEN
+# ==========================================
+elif st.session_state.app_mode == "login":
+    st.markdown("<br><h2 style='text-align: center;'>🔐 Login Manajemen</h2><hr>", unsafe_allow_html=True)
+    col_back, _ = st.columns([2, 8])
+    with col_back:
+        if st.button("⬅️ Kembali ke Menu Utama"):
+            st.session_state.app_mode = "landing"
+            st.rerun()
+    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+    with col_l2:
+        role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
+        if role != "Pilih...":
+            users_db = load_users()
+            u_list = [k for k, v in users_db.items() if v["role"] == role]
+            target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
+            pwd = st.text_input("Password", type="password")
             
-            if st.button("Masuk Portal Manajemen", use_container_width=True):
-                st.session_state.app_mode = "login"
-                st.rerun()
-                
-            st.write("<br>", unsafe_allow_html=True)
-            
-            if st.button("Masuk Portal Karyawan", use_container_width=True):
-                st.session_state.role = "Karyawan"
-                st.session_state.logged_in = True
-                st.session_state.app_mode = "main"
-                st.rerun()
-                
-            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>© 2026 PT. Saptaindra Sejati. All rights reserved.</p>", unsafe_allow_html=True)
-
-    elif st.session_state.app_mode == "login":
-        # Desain Login
-        col1, col2, col3 = st.columns([1, 1.2, 1])
-        with col2:
-            st.markdown("""
-            <div style="text-align: center; margin-bottom: 25px;">
-                <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
-                    <span style="color: #0d6efd;">✓</span> SPL DIGITAL
-                </h1>
-                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Portal Akses Manajemen</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
-            
-            if role != "Pilih...":
-                users_db = load_users()
-                u_list = [k for k, v in users_db.items() if v["role"] == role]
-                target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
-                pwd = st.text_input("Password", type="password")
-                
-                st.write("<br>", unsafe_allow_html=True)
-                if st.button("LOGIN", use_container_width=True):
-                    if proses_login(target_user, pwd):
-                        st.session_state.logged_in = True
-                        st.session_state.role = role
-                        st.session_state.username = target_user
-                        st.session_state.app_mode = "main"
-                        st.rerun()
-                        
-            st.write("<br>", unsafe_allow_html=True)
-            if st.button("⬅️ Kembali"):
-                st.session_state.app_mode = "landing"
-                st.rerun()
+            # --- TOMBOL BERSIH: HANYA TULISAN "LOGIN" ---
+            if st.button("LOGIN", use_container_width=True):
+                if proses_login(target_user, pwd):
+                    st.session_state.logged_in = True
+                    st.session_state.role = role
+                    st.session_state.username = target_user
+                    st.session_state.app_mode = "main"
+                    st.rerun()
 
 # ==========================================
 # HALAMAN DASHBOARD UTAMA
@@ -448,7 +429,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     if st.form_submit_button("Simpan Password"):
                         db_pass = load_users()
                         user_data = db_pass[st.session_state.username]
-                        if str(pass_lama) != str(user_data["password"]): st.error("Password lama salah!")
+                        if pass_lama != user_data["password"]: st.error("Password lama salah!")
                         elif pass_baru != pass_konf: st.error("Password baru tidak cocok!")
                         elif len(pass_baru) < 4: st.error("Password terlalu pendek (Min 4)!")
                         else:
@@ -480,12 +461,12 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             col1, col2 = st.columns(2)
             nama = col1.text_input("Nama Karyawan *")
             nrp = col2.text_input("NRP *") 
-            cs, cp = st.columns(2)
-            section = cs.selectbox("Section", ["Logistik"]) 
-            perusahaan = cp.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa"])
-            ct, ch = st.columns(2)
-            tgl = ct.date_input("Tanggal", value=get_wib_time().date(), disabled=True)
-            shift = ch.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
+            col_sec, col_per = st.columns(2)
+            section = col_sec.selectbox("Section", ["Logistik"]) 
+            perusahaan = col_per.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa"])
+            col_tgl, col_shift = st.columns(2)
+            tgl = col_tgl.date_input("Tanggal", value=get_wib_time().date(), disabled=True)
+            shift = col_shift.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
             pengawas_tujuan = st.selectbox("Pengawas (GL) Yang Bertugas", LIST_GL)
             
             st.markdown("**Waktu Lembur:**")
@@ -742,7 +723,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         df_admin_raw = get_db()
         st.subheader("🎛️ Filter Data SPL")
         
-        # --- FITUR FILTER LENGKAP ---
+        # --- FITUR FILTER ---
         mode_filter = st.radio("Pilih Mode Filter:", ["Semua Data", "Tanggal", "Bulan", "Tahun", "Range Tanggal"], horizontal=True)
         df_admin = df_admin_raw.copy()
         nama_file_excel = "Rekapan_SPL_Semua"
@@ -775,7 +756,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         else:
             st.subheader("📊 Tabel Database SPL & Rekapan Excel")
             
-            # --- EXCEL (.XLSX) SESUAI URUTAN YANG DIMINTA ---
+            # --- PERSIAPAN TABEL & EXCEL (.XLSX) Sesuai image_874655.png ---
             df_display = df_admin.copy()
             df_display['Jam Awal'] = df_display['Jam'].apply(lambda x: x.split(' - ')[0] if pd.notna(x) and ' - ' in str(x) else "")
             df_display['Jam Akhir'] = df_display['Jam'].apply(lambda x: x.split(' - ')[1] if pd.notna(x) and ' - ' in str(x) else "")
@@ -802,32 +783,14 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                 df_excel.to_excel(writer, index=False, sheet_name='Rekap_SPL')
             excel_data = buffer.getvalue()
             
-            # TOMBOL EXCEL DI ATAS TABEL
+            # TOMBOL DOWNLOAD DI ATAS TABEL
             st.download_button("📥 Download Tabel di Bawah (Format .xlsx)", data=excel_data, file_name=f"{nama_file_excel}.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             
-            # --- TAMPILAN DASHBOARD ---
+            # --- TAMPILAN DASHBOARD (image_87a3ee.png) ---
             tabel_tampil = df_admin[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']].copy()
             tabel_tampil.index = range(1, len(tabel_tampil) + 1)
             st.dataframe(tabel_tampil, use_container_width=True)
             
-            st.markdown("---")
-            
-            # --- ARSIP PDF DENGAN DAFTAR MINI ---
-            st.subheader("🗂️ Arsip Dokumen PDF (Siap Unduh)")
-            st.info("💡 Klik tombol download di bawah ini untuk mencetak SPL yang berstatus **Final Approved**.")
-            approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
-            if approved_admin.empty: 
-                st.write("Belum ada dokumen PDF yang di-generate pada filter ini.")
-            else:
-                for idx, row in approved_admin.iterrows():
-                    c_pdf1, c_pdf2, c_pdf3 = st.columns([1, 4, 2])
-                    c_pdf1.write(f"📅 {row['Tanggal']}")
-                    c_pdf2.write(f"👤 **{row['Nama']}** (NRP: {row['NRP']})")
-                    file_pdf = create_pdf(row)
-                    with open(file_pdf, "rb") as f:
-                        c_pdf3.download_button("⬇️ Download PDF", f, file_name=file_pdf, key=f"dl_adm_fin_{row['ID']}", use_container_width=True)
-                    st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
-
             st.markdown("---")
             
             # --- TRACKING ---
@@ -853,7 +816,21 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** ➔ Ditolak oleh: **{penolak}** | **Alasan:** {alasan}")
             st.markdown("---")
             
+            # --- ARSIP PDF ---
+            st.subheader("🗂️ Arsip Lengkap Dokumen PDF (Disetujui)")
+            approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
+            if approved_admin.empty: st.write("Belum ada dokumen PDF yang di-generate pada filter ini.")
+            else:
+                for idx, row in approved_admin.iterrows():
+                    col1, col2 = st.columns([3, 1])
+                    with col1: st.write(f"✅ **SPL {row['Nama']} & {row['Tanggal']}**")
+                    with col2:
+                        file_pdf = create_pdf(row)
+                        with open(file_pdf, "rb") as f:
+                            st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_adm_{row['ID']}")
+
         # --- MANAJEMEN AKUN ---
+        st.markdown("---")
         st.subheader("🔐 Manajemen Keamanan Akun")
         db_admin_users = load_users()
         col_ua1, col_ua2 = st.columns(2)
