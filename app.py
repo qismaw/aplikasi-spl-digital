@@ -279,7 +279,7 @@ if st.session_state.app_mode == "landing":
         </div>
         <h2 style="font-size: 28px; margin-top: 30px;">Selamat Datang!</h2>
         <p style="color: #cbd5e1; font-size: 15px; max-width: 500px; margin: 0 auto;">
-            Portal digital untuk pengajuan, approval, monitoring, dan dokumentasi Surat Perintah Lembur (SPL) secara terintegrasi.
+            Portal digital untuk input, approval, monitoring, dan dokumentasi Surat Perintah Lembur (SPL).
         </p>
         <div style="display: flex; justify-content: center; align-items: center; margin: 40px 0 20px 0;">
             <div style="height: 1px; width: 100px; background: rgba(255,255,255,0.1);"></div>
