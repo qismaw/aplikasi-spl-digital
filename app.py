@@ -15,65 +15,86 @@ from google.oauth2.service_account import Credentials
 SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
 # Konfigurasi Halaman & CSS Kustom
-st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
+st.set_page_config(page_title="OVERTIX - SPL Digital", page_icon="⏱️", layout="wide")
 
+# ==========================================
+# CSS SAKTI: OVERTIX DARK THEME + FIX TEKS + TABEL RAPI
+# ==========================================
 st.markdown("""
 <style>
-/* ==========================================================
-   1. SEMBUNYIKAN MENU STREAMLIT, GITHUB ICON, & TOOLBAR CLOUD
-   ========================================================== */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
+/* 1. HILANGKAN MENU DEVELOPER & GITHUB SECARA PERMANEN */
+#MainMenu {visibility: hidden !important;}
+footer {visibility: hidden !important;}
+header {visibility: hidden !important;}
 .stDeployButton {display: none !important;}
 [data-testid="stToolbar"] {display: none !important; visibility: hidden !important;}
 [data-testid="stHeader"] {display: none !important; visibility: hidden !important;}
 
-/* 2. Warna Tombol Umum */
-div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; }
-div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; }
-div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
-
-/* ==========================================================
-   3. STYLING TABEL: ANTI TUMPANG TINDIH & LEBIH RAPI KHUSUS HP
-   ========================================================== */
-@media (max-width: 768px) {
-    body, .stApp { overflow-x: hidden !important; }
+/* 2. TEMA BACKGROUND OVERTIX (DARK BLUE MODERN) */
+.stApp {
+    background: radial-gradient(circle at top right, #111a30 0%, #060913 100%) !important;
+    color: white !important;
 }
 
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
-    background-color: rgba(255,255,255,0.03) !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
+/* 3. PAKSA TEKS INPUT & DROPDOWN JADI PUTIH TERANG */
+.stTextInput input, .stSelectbox div[data-baseweb="select"] > div {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important; /* Paksa untuk Chrome/HP */
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 8px !important;
-    padding: 5px !important;
-    margin-bottom: 20px !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+}
+.stTextInput input::placeholder {
+    color: #a0aabf !important;
+    -webkit-text-fill-color: #a0aabf !important;
+}
+div[data-baseweb="select"] span {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+/* Warna List Item Dropdown */
+div[data-baseweb="popover"] ul { background-color: #111a30 !important; }
+div[data-baseweb="popover"] li { color: #ffffff !important; }
+/* Label Form */
+.stSelectbox label, .stTextInput label { color: #a0aabf !important; font-weight: 500 !important;}
+
+/* 4. WARNA TOMBOL CUSTOM OVERTIX */
+div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; border:none !important;}
+div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; border:none !important;}
+
+/* Tombol Biru (Manajemen/Login) */
+div[data-testid="stButton"] button:has(p:contains("LOGIN")), 
+div[data-testid="stButton"] button:has(p:contains("Portal Manajemen")) {
+    background: linear-gradient(90deg, #0d6efd, #0a58ca) !important;
+    color: white !important; border: none !important; border-radius: 8px !important; font-weight: bold !important;
+}
+/* Tombol Hijau (Karyawan) */
+div[data-testid="stButton"] button:has(p:contains("Portal Karyawan")),
+div[data-testid="stButton"] button:has(p:contains("Kirim Pengajuan")) {
+    background: linear-gradient(90deg, #198754, #157347) !important;
+    color: white !important; border: none !important; border-radius: 8px !important; font-weight: bold !important;
+}
+/* Tombol Kembali / Secondary */
+div[data-testid="stButton"] button:has(p:contains("Kembali")) {
+    background: rgba(255, 255, 255, 0.1) !important; color: white !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 8px !important;
 }
 
+/* 5. STYLING TABEL DASHBOARD AGAR RAPI DI HP */
+@media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
+    background-color: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.2) !important;
+    border-radius: 8px !important; padding: 5px !important; margin-bottom: 20px !important; overflow-x: auto !important;
+}
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    min-width: 1000px !important; 
-    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-    padding: 12px 0px !important; 
-    gap: 0px !important;
-    align-items: center !important;
+    display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;
+    min-width: 1000px !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 12px 0px !important; gap: 0px !important; align-items: center !important;
 }
-
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child {
-    border-bottom: none !important;
-}
-
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"]:last-child { border-bottom: none !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="column"] {
-    flex: 0 0 auto !important;
-    padding: 0 10px !important;
-    display: flex !important;
-    align-items: center !important;
+    flex: 0 0 auto !important; padding: 0 10px !important; display: flex !important; align-items: center !important;
 }
-
-/* Lebar Kolom Presisi agar tombol tidak berdesakan */
+/* Lebar Kolom */
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) { width: 45px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) { width: 100px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) { width: 180px !important; }
@@ -84,12 +105,7 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) di
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(8) { width: 75px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(9) { width: 110px !important; }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(10){ width: 110px !important; }
-
-div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
-    margin-bottom: 0 !important;
-    font-size: 14px !important;
-    white-space: nowrap !important;
-}
+div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p { margin-bottom: 0 !important; font-size: 14px !important; white-space: nowrap !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -335,41 +351,54 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HALAMAN UTAMA (LANDING PAGE)
+# HALAMAN UTAMA (LANDING PAGE OVERTIX)
 # ==========================================
 if st.session_state.app_mode == "landing":
-    st.markdown("<br><br><h1 style='text-align: center;'>🏢 Portal SPL Digital PT. SIS</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: gray; margin-bottom: 50px;'>Silakan pilih gerbang akses Anda di bawah ini:</p>", unsafe_allow_html=True)
-    col1, col2, col3, col4 = st.columns([1, 4, 4, 1])
+    st.write("<br><br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1.5, 1])
     with col2:
-        st.success("📝 **PORTAL KARYAWAN**")
-        st.write("Masuk ke sini untuk mengisi formulir lembur. Tanpa perlu *login* atau kata sandi.")
-        st.write("")
-        if st.button("Masuk ke Pembuatan Form SPL", use_container_width=True):
-            st.session_state.role = "Karyawan"
-            st.session_state.logged_in = True
-            st.session_state.app_mode = "main"
-            st.rerun()
-    with col3:
-        st.info("🔐 **PORTAL MANAJEMEN**")
-        st.write("Khusus untuk GL/UH, Section Head, dan Administrator untuk melakukan verifikasi.")
-        st.write("")
-        if st.button("Masuk Halaman Login", use_container_width=True):
-            st.session_state.app_mode = "login"
-            st.rerun()
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="color: white; font-weight: 800; font-size: 42px; letter-spacing: 2px;">
+                <span style="color: #0d6efd;">✓</span> OVERTIX
+            </h1>
+            <p style="color: #a0aabf; font-size: 16px; margin-top: -10px; letter-spacing: 1px;">SMART OVERTIME EXECUTION SYSTEM</p>
+            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 20px 0;">
+            <h3 style="color: white; margin-top: 20px; font-size: 22px;">Selamat Datang!</h3>
+            <p style="color: #a0aabf; font-size: 14px;">Silakan pilih portal akses di bawah ini:</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        c_btn1, c_btn2 = st.columns(2)
+        with c_btn1:
+            if st.button("📝 Portal Karyawan", use_container_width=True):
+                st.session_state.role = "Karyawan"
+                st.session_state.logged_in = True
+                st.session_state.app_mode = "main"
+                st.rerun()
+        with c_btn2:
+            if st.button("🔐 Portal Manajemen", use_container_width=True):
+                st.session_state.app_mode = "login"
+                st.rerun()
+            
+        st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 40px;'>© 2026 PT. Saptaindra Sejati. All rights reserved.</p>", unsafe_allow_html=True)
 
 # ==========================================
-# HALAMAN LOGIN MANAJEMEN
+# HALAMAN LOGIN MANAJEMEN OVERTIX
 # ==========================================
 elif st.session_state.app_mode == "login":
-    st.markdown("<br><h2 style='text-align: center;'>🔐 Login Manajemen</h2><hr>", unsafe_allow_html=True)
-    col_back, _ = st.columns([2, 8])
-    with col_back:
-        if st.button("⬅️ Kembali ke Menu Utama"):
-            st.session_state.app_mode = "landing"
-            st.rerun()
-    col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
-    with col_l2:
+    st.write("<br><br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="color: white; font-weight: 800; font-size: 36px; letter-spacing: 1px;">
+                <span style="color: #0d6efd;">✓</span> OVERTIX
+            </h1>
+            <p style="color: #a0aabf; font-size: 15px; margin-top: -10px;">Portal Approval Manajemen</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
         role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
         if role != "Pilih...":
             users_db = load_users()
@@ -377,7 +406,7 @@ elif st.session_state.app_mode == "login":
             target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
             pwd = st.text_input("Password", type="password")
             
-            # --- TOMBOL BERSIH: HANYA TULISAN "LOGIN" ---
+            st.write("<br>", unsafe_allow_html=True)
             if st.button("LOGIN", use_container_width=True):
                 if proses_login(target_user, pwd):
                     st.session_state.logged_in = True
@@ -385,6 +414,11 @@ elif st.session_state.app_mode == "login":
                     st.session_state.username = target_user
                     st.session_state.app_mode = "main"
                     st.rerun()
+                    
+        st.write("<br>", unsafe_allow_html=True)
+        if st.button("⬅️ Kembali", use_container_width=True):
+            st.session_state.app_mode = "landing"
+            st.rerun()
 
 # ==========================================
 # HALAMAN DASHBOARD UTAMA
@@ -456,7 +490,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             
             alasan = st.text_area("Keterangan Lembur *")
             st.markdown("*Keterangan: Tanda (*) wajib diisi*")
-            submitted = st.form_submit_button("Kirim Pengajuan Lembur")
+            submitted = st.form_submit_button("Kirim Pengajuan")
             
             if submitted:
                 waktu_awal_menit = (int(jam_a) * 60) + int(menit_a)
