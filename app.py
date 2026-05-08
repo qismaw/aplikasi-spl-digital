@@ -396,7 +396,8 @@ if st.session_state.app_mode in ["landing", "login"]:
                 
             st.write("<br>", unsafe_allow_html=True)
                 
-            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>© 2026 PT. Saptaindra Sejati. All rights reserved. create by QismaWahda</p>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>© 2026 PT. Saptaindra Sejati. All rights reserved. 
+            create by QismaWahda</p>", unsafe_allow_html=True)
 
     elif st.session_state.app_mode == "login":
         # Desain Login
