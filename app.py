@@ -16,38 +16,6 @@ SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
 # Konfigurasi Halaman
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
-# Tambahkan ini untuk memperbaiki warna teks di dalam kotak login
-st.markdown("""
-<style>
-    /* MENGUBAH TULISAN DALAM KOTAK DROPDOWN JABATAN & USER AGAR PUTIH */
-    div[data-baseweb="select"] > div {
-        color: white !important;
-        background-color: rgba(255, 255, 255, 0.05) !important;
-    }
-
-    /* MENGUBAH TULISAN DALAM KOTAK PASSWORD AGAR PUTIH */
-    input[data-testid="stTextInputEnterChat"] {
-        color: white !important;
-    }
-    
-    /* UNTUK SEMUA INPUT TEKS (PASSWORD/USER) */
-    .stTextInput input {
-        color: white !important;
-        background-color: rgba(255, 255, 255, 0.05) !important;
-    }
-
-    /* MENGUBAH WARNA TEKS SAAT KITA MENGETIK */
-    input {
-        color: white !important;
-        -webkit-text-fill-color: white !important;
-    }
-
-    /* MENGUBAH WARNA TEKS LIST PILIHAN DI DALAM DROPDOWN */
-    div[data-baseweb="popover"] li {
-        color: white !important;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # ==========================================
 # CSS GLOBAL (HILANGKAN MENU & PERBAIKI TABEL)
