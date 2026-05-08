@@ -89,7 +89,7 @@ st.markdown("""
         background-color: rgba(255,255,255,0.02) !important; 
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 10px !important; 
-        padding: 5px !important; /* Box tabel diperkecil */
+        padding: 5px !important;
         margin-bottom: 20px !important; 
         overflow-x: auto !important;
     }
@@ -98,16 +98,16 @@ st.markdown("""
         min-width: 1000px !important; 
         border-bottom: 1px solid rgba(255,255,255,0.1) !important; 
         align-items: center !important; 
-        padding: 4px 0 !important; /* JARAK ANTAR BARIS DIPERKECIL / RAPAT */
+        padding: 4px 0 !important; /* Jarak baris rapat */
     }
     
-    /* MEMBESARKAN TULISAN DI DALAM TABEL */
+    /* Memperbesar huruf di dalam tabel ke 18px */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
-        font-size: 17px !important; /* UKURAN HURUF DIPERBESAR */
+        font-size: 18px !important; 
         margin-bottom: 0 !important;
     }
     
-    /* Mengecilkan tombol di dalam tabel agar baris tidak bengkak */
+    /* Mengecilkan tombol di dalam tabel agar baris tidak melar */
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button {
         padding: 2px 10px !important;
         min-height: 32px !important;
@@ -229,7 +229,7 @@ def create_pdf(row):
 def display_html_preview(row):
     total_lembur = hitung_total_lembur_str(row['Jam'])
     html_content = f"""
-    <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif;">
+    <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif; resize: both; overflow: auto; min-width: 300px;">
         <div style="border: 1px solid black; padding: 10px; margin-bottom: 10px;"><b>PT. Saptaindra Sejati<br>Site Maco</b></div>
         <h3 style="text-align: center; text-decoration: underline;">SURAT PERINTAH LEMBUR</h3>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
@@ -258,17 +258,22 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HALAMAN LANDING PAGE (Sesuai Desain OVERTIX)
+# HALAMAN LANDING PAGE
 # ==========================================
 if st.session_state.app_mode == "landing":
     st.write("<br><br>", unsafe_allow_html=True)
     
-    # Header Logo
+    # MENAMPILKAN LOGO OVERTIX.PNG
+    col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
+    with col_img2:
+        try:
+            st.image("OVERTIX.png", use_container_width=True)
+        except:
+            st.markdown("<h1 style='text-align: center; color: white;'>✓ OVERTIX</h1>", unsafe_allow_html=True)
+
+    # TEKS DI BAWAH LOGO
     st.markdown("""
     <div style="text-align: center; margin-bottom: 40px;">
-        <h1 style="font-size: 55px; font-weight: 800; letter-spacing: 2px; margin-bottom: 0;">
-            <span style="color: #0060FF;">✓</span> OVERTIX
-        </h1>
         <p style="color: #8292a6; font-size: 14px; letter-spacing: 2px; font-weight: 600; margin-top: -10px;">
             SMART OVERTIME <span style="color: #FACC15;">EXECUTION</span> SYSTEM
         </p>
@@ -279,7 +284,7 @@ if st.session_state.app_mode == "landing":
         </div>
         <h2 style="font-size: 28px; margin-top: 30px;">Selamat Datang!</h2>
         <p style="color: #cbd5e1; font-size: 15px; max-width: 500px; margin: 0 auto;">
-            Portal digital untuk input, approval, monitoring, dan dokumentasi Surat Perintah Lembur (SPL).
+            Portal digital untuk pengajuan, approval, monitoring, dan dokumentasi Surat Perintah Lembur (SPL) secara terintegrasi.
         </p>
         <div style="display: flex; justify-content: center; align-items: center; margin: 40px 0 20px 0;">
             <div style="height: 1px; width: 100px; background: rgba(255,255,255,0.1);"></div>
@@ -302,7 +307,6 @@ if st.session_state.app_mode == "landing":
             <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 20px;">Masuk ke sini untuk mengisi formulir lembur. Tanpa perlu login atau kata sandi.</p>
         </div>
         """, unsafe_allow_html=True)
-        # Tombol dipisah agar fungsi klik Streamlit berjalan normal
         if st.button("→ Buat Form SPL", use_container_width=True):
             st.session_state.role = "Karyawan"
             st.session_state.logged_in = True
@@ -332,14 +336,12 @@ elif st.session_state.app_mode == "login":
     st.write("<br><br><br>", unsafe_allow_html=True)
     c1, c2, c3 = st.columns([1, 1.2, 1])
     with c2:
-        st.markdown("""
-        <div style="text-align: center; margin-bottom: 25px;">
-            <h1 style="font-size: 40px; font-weight: 800; margin-bottom: 0;">
-                <span style="color: #0060FF;">✓</span> OVERTIX
-            </h1>
-            <p style="color: #8292a6; font-size: 14px;">Portal Approval Manajemen</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; margin-bottom: 25px;'>", unsafe_allow_html=True)
+        try:
+            st.image("OVERTIX.png", use_container_width=True)
+        except:
+            st.markdown("<h1 style='color: white; font-weight: 800; font-size: 36px; letter-spacing: 1px;'>✓ OVERTIX</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='color: #a0aabf; font-size: 15px; margin-top: -10px;'>Portal Approval Manajemen</p></div>", unsafe_allow_html=True)
         
         role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
         if role != "Pilih...":
@@ -548,6 +550,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
         df_admin_raw = get_db()
         st.subheader("🎛️ Filter Data SPL")
         
+        # --- FITUR FILTER LENGKAP ---
         mode_filter = st.radio("Pilih Mode Filter:", ["Semua Data", "Tanggal", "Bulan", "Tahun", "Range Tanggal"], horizontal=True)
         df_admin = df_admin_raw.copy()
         nama_file_excel = "Rekapan_SPL_Semua"
@@ -611,3 +614,61 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             
             st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
             st.dataframe(tabel_tampil, use_container_width=True)
+            
+            st.markdown("---")
+            
+            # --- ARSIP PDF DENGAN DAFTAR MINI ---
+            st.subheader("🗂️ Arsip Dokumen PDF (Siap Unduh)")
+            approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
+            if approved_admin.empty: st.write("Belum ada dokumen PDF yang di-generate pada filter ini.")
+            else:
+                for idx, row in approved_admin.iterrows():
+                    c_pdf1, c_pdf2, c_pdf3 = st.columns([1, 4, 2])
+                    c_pdf1.write(f"📅 {row['Tanggal']}")
+                    c_pdf2.write(f"👤 **{row['Nama']}** (NRP: {row['NRP']})")
+                    file_pdf = create_pdf(row)
+                    with open(file_pdf, "rb") as f: c_pdf3.download_button("⬇️ Download PDF", f, file_name=file_pdf, key=f"dl_adm_fin_{row['ID']}", use_container_width=True)
+                    st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
+
+            st.markdown("---")
+            
+            # --- TRACKING ---
+            st.subheader("⏳ Tracking Dokumen Belum Selesai (Pending)")
+            pending_admin = df_admin[(df_admin["Status"] != "Final Approved") & (df_admin["Status"] != "Ditolak")]
+            if pending_admin.empty: st.success("TIDAK ADA ANTRIAN pada filter ini.")
+            else:
+                for idx, row in pending_admin.iterrows():
+                    if row["Status"] == "Pending GL": st.warning(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **Menunggu Persetujuan GL/UH: {row['Pengawas_Tujuan']}**")
+                    else: st.info(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **Menunggu Persetujuan Akhir Section Head**")
+            st.markdown("---")
+
+            # --- DITOLAK ---
+            st.subheader("❌ Riwayat Pengajuan Ditolak")
+            rejected_admin = df_admin[df_admin["Status"] == "Ditolak"]
+            if rejected_admin.empty: st.write("Tidak ada pengajuan yang ditolak pada filter ini.")
+            else:
+                for idx, row in rejected_admin.iterrows():
+                    penolak = row['Nama_SH'] if pd.notna(row['Nama_SH']) and str(row['Nama_SH']).strip() and str(row['Nama_SH']) != "nan" else row['Nama_GL']
+                    st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** ➔ Ditolak oleh: **{penolak}** | **Alasan:** {row.get('Alasan_Tolak', '')}")
+            st.markdown("---")
+            
+        # --- MANAJEMEN AKUN ---
+        st.subheader("🔐 Manajemen Keamanan Akun")
+        db_admin_users = load_users()
+        col_ua1, col_ua2 = st.columns(2)
+        with col_ua1:
+            st.markdown("**Akun Terblokir (Gagal Login 3x):**")
+            blocked_users = [k for k, v in db_admin_users.items() if v["blocked"]]
+            if not blocked_users: st.success("Aman! Tidak ada akun yang terblokir saat ini.")
+            else:
+                for bu in blocked_users:
+                    col_b1, col_b2 = st.columns([3, 2])
+                    col_b1.error(f"🔒 {bu}")
+                    if col_b2.button("Buka Blokir", key=f"unblock_{bu}"):
+                        db_admin_users[bu]["blocked"] = False; db_admin_users[bu]["failed_attempts"] = 0; db_admin_users[bu]["password"] = "default123"; save_users(db_admin_users); st.success(f"Berhasil! Akun {bu} dibuka. Sandi direset ke: default123"); time.sleep(2); st.rerun()
+                        
+        with col_ua2:
+            st.markdown("**Reset Sandi Pengguna ke Default:**")
+            user_to_reset = st.selectbox("Pilih Pengguna:", list(db_admin_users.keys()))
+            if st.button("Reset Sandi ke 'default123'"):
+                db_admin_users[user_to_reset]["password"] = "default123"; db_admin_users[user_to_reset]["failed_attempts"] = 0; db_admin_users[user_to_reset]["blocked"] = False; save_users(db_admin_users); st.success(f"✅ Sandi untuk {user_to_reset} berhasil diubah menjadi: default123")
