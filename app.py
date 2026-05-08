@@ -18,7 +18,7 @@ SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 st.set_page_config(page_title="OVERTIX - SPL Digital", page_icon="⏱️", layout="wide")
 
 # ==========================================
-# 💎 CSS SUPER PREMIUM: OVERTIX DARK THEME (Sesuai image_53357b.png)
+# 💎 CSS SUPER PREMIUM: OVERTIX DARK THEME
 # ==========================================
 st.markdown("""
 <style>
@@ -54,48 +54,64 @@ st.markdown("""
     div[data-baseweb="popover"] li { color: #ffffff !important; }
     .stSelectbox label, .stTextInput label { color: #cbd5e1 !important; font-weight: 500 !important;}
 
-/* 4. CUSTOM TABEL KARYAWAN (Tabel ramping, Font Besar) */
-.custom-table-container {
-    background-color: #1c273c;
-    border-radius: 8px;
-    border: 1px solid #2e3c54;
-    padding: 8px !important; /* Diperkecil agar lebih rapat */
-    margin-top: 10px;
-    overflow-x: auto;
-}
-
-.custom-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 18px !important; /* <--- UKURAN TULISAN TABEL DIPERBESAR KE 18px */
-}
-
-.custom-table th {
-    background-color: #23314a;
-    color: #cbd5e1;
-    text-align: center;
-    padding: 2px 5px !important; /* <--- PADDING SANGAT KECIL (Jarak atas-bawah cuma 2px) */
-    border: 1px solid #2e3c54;
-    font-weight: 700;
-}
-
-.custom-table td {
-    background-color: #1c273c;
-    color: white;
-    text-align: center;
-    padding: 2px 5px !important; /* <--- PADDING SANGAT KECIL agar tabel tipis */
-    border: 1px solid #2e3c54;
-    white-space: nowrap;
-}
-
-    /* 5. TABEL DASHBOARD AGAR RAPI DI HP */
-    @media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
-        background-color: rgba(255,255,255,0.02) !important; border: 1px solid rgba(255,255,255,0.1) !important;
-        border-radius: 10px !important; padding: 10px !important; margin-bottom: 20px !important; overflow-x: auto !important;
+    /* 4. STYLING TOMBOL CUSTOM OVERTIX */
+    .stButton>button {
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        padding: 10px 24px !important;
+        transition: all 0.3s ease !important;
+        border: none !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
     }
+    .stButton>button:hover { transform: translateY(-2px) !important; }
+
+    /* Tombol Karyawan (Biru Terang) */
+    div[data-testid="stButton"] button:has(p:contains("Buat Form SPL")),
+    div[data-testid="stButton"] button:has(p:contains("Kirim Pengajuan")) {
+        background: linear-gradient(90deg, #0056D2, #0060FF) !important; color: white !important;
+    }
+    /* Tombol Manajemen (Ungu) */
+    div[data-testid="stButton"] button:has(p:contains("Masuk Portal Approval")),
+    div[data-testid="stButton"] button:has(p:contains("LOGIN")) {
+        background: linear-gradient(90deg, #6431CE, #7C45F2) !important; color: white !important;
+    }
+    
+    div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #10b981 !important; color: white !important; }
+    div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ef4444 !important; color: white !important; }
+    div[data-testid="stButton"] button:has(p:contains("Kembali")), div[data-testid="stButton"] button:has(p:contains("Keluar")) {
+        background: rgba(255, 255, 255, 0.1) !important; color: white !important; border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+
+    /* 5. TABEL DASHBOARD (RAPAT & TULISAN BESAR) */
+    @media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
+    
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
+        background-color: rgba(255,255,255,0.02) !important; 
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important; 
+        padding: 5px !important; /* Box tabel diperkecil */
+        margin-bottom: 20px !important; 
+        overflow-x: auto !important;
+    }
+    
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
-        min-width: 1000px !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; align-items: center !important; padding: 10px 0;
+        min-width: 1000px !important; 
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important; 
+        align-items: center !important; 
+        padding: 4px 0 !important; /* JARAK ANTAR BARIS DIPERKECIL / RAPAT */
+    }
+    
+    /* MEMBESARKAN TULISAN DI DALAM TABEL */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p {
+        font-size: 17px !important; /* UKURAN HURUF DIPERBESAR */
+        margin-bottom: 0 !important;
+    }
+    
+    /* Mengecilkan tombol di dalam tabel agar baris tidak bengkak */
+    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button {
+        padding: 2px 10px !important;
+        min-height: 32px !important;
+        font-size: 14px !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -211,6 +227,7 @@ def create_pdf(row):
     fn = f"SPL_{safe_nama}_{row['Tanggal']}.pdf"; pdf.output(fn); return fn
 
 def display_html_preview(row):
+    total_lembur = hitung_total_lembur_str(row['Jam'])
     html_content = f"""
     <div style="background-color: white; padding: 20px; border: 1px solid #ccc; border-radius: 5px; color: black; font-family: Arial, sans-serif;">
         <div style="border: 1px solid black; padding: 10px; margin-bottom: 10px;"><b>PT. Saptaindra Sejati<br>Site Maco</b></div>
@@ -218,7 +235,7 @@ def display_html_preview(row):
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
             <tr><td style="border: 1px solid black; padding: 8px; width: 25%;"><b>NAMA</b></td><td style="border: 1px solid black; padding: 8px;" colspan="3">{row['Nama']}</td></tr>
             <tr><td style="border: 1px solid black; padding: 8px;"><b>NRP/DEPT</b></td><td style="border: 1px solid black; padding: 8px;">{row['NRP']} / {row['Section']}</td><td style="border: 1px solid black; padding: 8px; width: 15%;"><b>SHIFT :</b></td><td style="border: 1px solid black; padding: 8px; width: 20%;">{row['Shift']}</td></tr>
-            <tr><td style="border: 1px solid black; padding: 8px;"><b>TANGGAL :</b></td><td style="border: 1px solid black; padding: 8px;">{row['Tanggal']}</td><td style="border: 1px solid black; padding: 8px;"><b>JAM :</b></td><td style="border: 1px solid black; padding: 8px;">{row['Jam']} = {hitung_total_lembur_str(row['Jam'])}</td></tr>
+            <tr><td style="border: 1px solid black; padding: 8px;"><b>TANGGAL :</b></td><td style="border: 1px solid black; padding: 8px;">{row['Tanggal']}</td><td style="border: 1px solid black; padding: 8px;"><b>JAM :</b></td><td style="border: 1px solid black; padding: 8px;">{row['Jam']} = {total_lembur}</td></tr>
             <tr><td style="border: 1px solid black; padding: 8px;"><b>PERUSAHAAN :</b></td><td style="border: 1px solid black; padding: 8px;" colspan="3">{row['Perusahaan']}</td></tr>
             <tr><td style="border: 1px solid black; padding: 8px; height: 60px; vertical-align: top;" colspan="4"><b>Keterangan Lembur :</b><br><br>{row['Alasan']}</td></tr>
         </table>
@@ -591,62 +608,6 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             # --- TAMPILAN DASHBOARD ---
             tabel_tampil = df_admin[['Tanggal', 'Nama', 'NRP', 'Section', 'Shift', 'Jam', 'Status', 'Pengawas_Tujuan']].copy()
             tabel_tampil.index = range(1, len(tabel_tampil) + 1)
+            
+            st.markdown("<span class='table-marker'></span>", unsafe_allow_html=True)
             st.dataframe(tabel_tampil, use_container_width=True)
-            
-            st.markdown("---")
-            
-            # --- ARSIP PDF DENGAN DAFTAR MINI (REFERENSI image_647afb.png) ---
-            st.subheader("🗂️ Arsip Dokumen PDF (Siap Unduh)")
-            approved_admin = df_admin[df_admin["Status"] == "Final Approved"]
-            if approved_admin.empty: st.write("Belum ada dokumen PDF yang di-generate pada filter ini.")
-            else:
-                for idx, row in approved_admin.iterrows():
-                    c_pdf1, c_pdf2, c_pdf3 = st.columns([1, 4, 2])
-                    c_pdf1.write(f"📅 {row['Tanggal']}")
-                    c_pdf2.write(f"👤 **{row['Nama']}** (NRP: {row['NRP']})")
-                    file_pdf = create_pdf(row)
-                    with open(file_pdf, "rb") as f: c_pdf3.download_button("⬇️ Download PDF", f, file_name=file_pdf, key=f"dl_adm_fin_{row['ID']}", use_container_width=True)
-                    st.markdown("<hr style='margin: 0px; opacity: 0.1;'>", unsafe_allow_html=True)
-
-            st.markdown("---")
-            
-            # --- TRACKING ---
-            st.subheader("⏳ Tracking Dokumen Belum Selesai (Pending)")
-            pending_admin = df_admin[(df_admin["Status"] != "Final Approved") & (df_admin["Status"] != "Ditolak")]
-            if pending_admin.empty: st.success("TIDAK ADA ANTRIAN pada filter ini.")
-            else:
-                for idx, row in pending_admin.iterrows():
-                    if row["Status"] == "Pending GL": st.warning(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **Menunggu Persetujuan GL/UH: {row['Pengawas_Tujuan']}**")
-                    else: st.info(f"📌 **SPL: {row['Nama']} & {row['Tanggal']}** ➔ Saat ini posisinya di: **Menunggu Persetujuan Akhir Section Head**")
-            st.markdown("---")
-
-            # --- DITOLAK ---
-            st.subheader("❌ Riwayat Pengajuan Ditolak")
-            rejected_admin = df_admin[df_admin["Status"] == "Ditolak"]
-            if rejected_admin.empty: st.write("Tidak ada pengajuan yang ditolak pada filter ini.")
-            else:
-                for idx, row in rejected_admin.iterrows():
-                    penolak = row['Nama_SH'] if pd.notna(row['Nama_SH']) and str(row['Nama_SH']).strip() and str(row['Nama_SH']) != "nan" else row['Nama_GL']
-                    st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** ➔ Ditolak oleh: **{penolak}** | **Alasan:** {row.get('Alasan_Tolak', '')}")
-            st.markdown("---")
-            
-        # --- MANAJEMEN AKUN ---
-        st.subheader("🔐 Manajemen Keamanan Akun")
-        db_admin_users = load_users()
-        col_ua1, col_ua2 = st.columns(2)
-        with col_ua1:
-            st.markdown("**Akun Terblokir (Gagal Login 3x):**")
-            blocked_users = [k for k, v in db_admin_users.items() if v["blocked"]]
-            if not blocked_users: st.success("Aman! Tidak ada akun yang terblokir saat ini.")
-            else:
-                for bu in blocked_users:
-                    col_b1, col_b2 = st.columns([3, 2])
-                    col_b1.error(f"🔒 {bu}")
-                    if col_b2.button("Buka Blokir", key=f"unblock_{bu}"):
-                        db_admin_users[bu]["blocked"] = False; db_admin_users[bu]["failed_attempts"] = 0; db_admin_users[bu]["password"] = "default123"; save_users(db_admin_users); st.success(f"Berhasil! Akun {bu} dibuka. Sandi direset ke: default123"); time.sleep(2); st.rerun()
-                        
-        with col_ua2:
-            st.markdown("**Reset Sandi Pengguna ke Default:**")
-            user_to_reset = st.selectbox("Pilih Pengguna:", list(db_admin_users.keys()))
-            if st.button("Reset Sandi ke 'default123'"):
-                db_admin_users[user_to_reset]["password"] = "default123"; db_admin_users[user_to_reset]["failed_attempts"] = 0; db_admin_users[user_to_reset]["blocked"] = False; save_users(db_admin_users); st.success(f"✅ Sandi untuk {user_to_reset} berhasil diubah menjadi: default123")
