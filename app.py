@@ -54,33 +54,39 @@ st.markdown("""
     div[data-baseweb="popover"] li { color: #ffffff !important; }
     .stSelectbox label, .stTextInput label { color: #cbd5e1 !important; font-weight: 500 !important;}
 
-    /* 4. STYLING TOMBOL CUSTOM OVERTIX */
-    .stButton>button {
-        border-radius: 10px !important;
-        font-weight: 600 !important;
-        padding: 10px 24px !important;
-        transition: all 0.3s ease !important;
-        border: none !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
-    }
-    .stButton>button:hover { transform: translateY(-2px) !important; }
+/* 4. CUSTOM TABEL KARYAWAN (Tabel ramping, Font Besar) */
+.custom-table-container {
+    background-color: #1c273c;
+    border-radius: 8px;
+    border: 1px solid #2e3c54;
+    padding: 8px !important; /* Diperkecil agar lebih rapat */
+    margin-top: 10px;
+    overflow-x: auto;
+}
 
-    /* Tombol Karyawan (Biru Terang) */
-    div[data-testid="stButton"] button:has(p:contains("Buat Form SPL")),
-    div[data-testid="stButton"] button:has(p:contains("Kirim Pengajuan")) {
-        background: linear-gradient(90deg, #0056D2, #0060FF) !important; color: white !important;
-    }
-    /* Tombol Manajemen (Ungu) */
-    div[data-testid="stButton"] button:has(p:contains("Masuk Portal Approval")),
-    div[data-testid="stButton"] button:has(p:contains("LOGIN")) {
-        background: linear-gradient(90deg, #6431CE, #7C45F2) !important; color: white !important;
-    }
-    
-    div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #10b981 !important; color: white !important; }
-    div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ef4444 !important; color: white !important; }
-    div[data-testid="stButton"] button:has(p:contains("Kembali")), div[data-testid="stButton"] button:has(p:contains("Keluar")) {
-        background: rgba(255, 255, 255, 0.1) !important; color: white !important; border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    }
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 18px !important; /* <--- UKURAN TULISAN TABEL DIPERBESAR KE 18px */
+}
+
+.custom-table th {
+    background-color: #23314a;
+    color: #cbd5e1;
+    text-align: center;
+    padding: 2px 5px !important; /* <--- PADDING SANGAT KECIL (Jarak atas-bawah cuma 2px) */
+    border: 1px solid #2e3c54;
+    font-weight: 700;
+}
+
+.custom-table td {
+    background-color: #1c273c;
+    color: white;
+    text-align: center;
+    padding: 2px 5px !important; /* <--- PADDING SANGAT KECIL agar tabel tipis */
+    border: 1px solid #2e3c54;
+    white-space: nowrap;
+}
 
     /* 5. TABEL DASHBOARD AGAR RAPI DI HP */
     @media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
