@@ -8,71 +8,7 @@ import json
 import io
 import gspread
 from google.oauth2.service_account import Credentials
-# ==============================================================================
-# === [BAGIAN 2: CSS TEMA & DESAIN (OVERTIX DARK THEME)] ===
-# Mengatur warna background, bentuk tabel, font, dan menghilangkan menu bawaan.
-# ==============================================================================
-st.markdown("""
-<style>
-    /* Hilangkan menu Streamlit */
-    #MainMenu {visibility: hidden !important;}
-    footer {visibility: hidden !important;}
-    header {visibility: hidden !important;}
-    .stDeployButton {display: none !important;}
-    [data-testid="stToolbar"] {display: none !important;}
-    [data-testid="stHeader"] {display: none !important;}
 
-    /* Background Aplikasi */
-    .stApp {
-        background: radial-gradient(circle at top, #0b1426 0%, #030612 100%) !important;
-        color: white !important;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-    }
-
-    /* Styling Input & Dropdown */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 8px !important;
-    }
-    .stTextInput input::placeholder { color: #8292a6 !important; -webkit-text-fill-color: #8292a6 !important; }
-    div[data-baseweb="select"] span { color: #ffffff !important; font-weight: 500 !important; }
-    div[data-baseweb="popover"] ul { background-color: #0b1426 !important; }
-    div[data-baseweb="popover"] li { color: #ffffff !important; }
-    .stSelectbox label, .stTextInput label { color: #cbd5e1 !important; font-weight: 500 !important;}
-
-    /* Styling Tombol */
-    .stButton>button {
-        border-radius: 10px !important; font-weight: 600 !important;
-        padding: 10px 24px !important; transition: all 0.3s ease !important;
-        border: none !important; box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
-    }
-    .stButton>button:hover { transform: translateY(-2px) !important; }
-
-    /* Warna Spesifik Tombol */
-    div[data-testid="stButton"] button:has(p:contains("Buat Form SPL")),
-    div[data-testid="stButton"] button:has(p:contains("Kirim Pengajuan")) { background: linear-gradient(90deg, #0056D2, #0060FF) !important; color: white !important; }
-    div[data-testid="stButton"] button:has(p:contains("Masuk Portal Approval")),
-    div[data-testid="stButton"] button:has(p:contains("LOGIN")) { background: linear-gradient(90deg, #6431CE, #7C45F2) !important; color: white !important; }
-    div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #10b981 !important; color: white !important; }
-    div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ef4444 !important; color: white !important; }
-    div[data-testid="stButton"] button:has(p:contains("Kembali")), div[data-testid="stButton"] button:has(p:contains("Keluar")) { background: rgba(255, 255, 255, 0.1) !important; color: white !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; }
-
-    /* Tabel Dashboard Karyawan & Admin (HP) */
-    @media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
-        background-color: rgba(255,255,255,0.02) !important; border: 1px solid rgba(255,255,255,0.1) !important;
-        border-radius: 10px !important; padding: 5px !important; margin-bottom: 20px !important; overflow-x: auto !important;
-    }
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stHorizontalBlock"] {
-        min-width: 1000px !important; border-bottom: 1px solid rgba(255,255,255,0.1) !important; align-items: center !important; padding: 4px 0 !important;
-    }
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p { font-size: 17px !important; margin-bottom: 0 !important; }
-    div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) div[data-testid="stButton"] button { padding: 2px 10px !important; min-height: 32px !important; font-size: 14px !important; }
-</style>
-""", unsafe_allow_html=True)
 # ==========================================
 # 🛑 ID DATABASE GOOGLE SHEETS ANDA 🛑
 # ==========================================
