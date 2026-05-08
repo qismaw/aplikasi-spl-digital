@@ -32,64 +32,98 @@ st.markdown("""
 
     /* 2. BACKGROUND APLIKASI (Dark Navy Blue) */
     .stApp {
-        background: radial-gradient(circle at top, #0b1426 0%, #030612 100%) !important;
+        background-color: #151e2d !important;
         color: white !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     }
 
-    /* 3. STYLING INPUT & DROPDOWN AGAR PUTIH TERANG */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"] > div {
+    /* 3. STYLING INPUT & DROPDOWN AGAR GELAP ELEGAN */
+    .stTextInput input, .stSelectbox div[data-baseweb="select"] > div, .stTextArea textarea, .stDateInput input {
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 8px !important;
+        background-color: #1c273c !important;
+        border: 1px solid #2e3c54 !important;
+        border-radius: 6px !important;
     }
-    .stTextInput input::placeholder {
-        color: #8292a6 !important;
-        -webkit-text-fill-color: #8292a6 !important;
+    .stTextInput input::placeholder, .stTextArea textarea::placeholder {
+        color: #64748b !important;
+        -webkit-text-fill-color: #64748b !important;
     }
-    div[data-baseweb="select"] span { color: #ffffff !important; font-weight: 500 !important; }
-    div[data-baseweb="popover"] ul { background-color: #0b1426 !important; }
+    div[data-baseweb="select"] span { color: #ffffff !important; }
+    div[data-baseweb="popover"] ul { background-color: #1c273c !important; }
     div[data-baseweb="popover"] li { color: #ffffff !important; }
-    .stSelectbox label, .stTextInput label { color: #cbd5e1 !important; font-weight: 500 !important;}
+    .stSelectbox label, .stTextInput label, .stDateInput label, .stTextArea label { 
+        color: #e2e8f0 !important; font-weight: 500 !important; font-size: 14px !important;
+    }
 
-    /* 4. STYLING TOMBOL CUSTOM OVERTIX */
-    .stButton>button {
-        border-radius: 10px !important;
-        font-weight: 600 !important;
-        padding: 10px 24px !important;
-        transition: all 0.3s ease !important;
-        border: none !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+    /* 4. CUSTOM TABEL KARYAWAN (Tabel ramping, Font Besar) */
+    .custom-table-container {
+        background-color: #1c273c;
+        border-radius: 8px;
+        border: 1px solid #2e3c54;
+        padding: 8px !important; /* Diperkecil agar lebih rapat */
+        margin-top: 10px;
+        overflow-x: auto;
     }
-    .stButton>button:hover { transform: translateY(-2px) !important; }
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 18px !important; /* UKURAN TULISAN DIPERBESAR */
+    }
+    .custom-table th {
+        background-color: #23314a;
+        color: #cbd5e1;
+        text-align: center;
+        padding: 4px 8px !important; /* PADDING SANGAT KECIL */
+        border: 1px solid #2e3c54;
+        font-weight: 700;
+    }
+    .custom-table td {
+        background-color: #1c273c;
+        color: white;
+        text-align: center;
+        padding: 4px 8px !important; /* PADDING SANGAT KECIL */
+        border: 1px solid #2e3c54;
+        white-space: nowrap;
+    }
 
-    /* Tombol Karyawan (Biru Terang) */
-    div[data-testid="stButton"] button:has(p:contains("Buat Form SPL")),
-    div[data-testid="stButton"] button:has(p:contains("Kirim Pengajuan")) {
-        background: linear-gradient(90deg, #0056D2, #0060FF) !important; color: white !important;
+    /* 5. BOX HEADER / CARD KARYAWAN */
+    .card-header {
+        background-color: #1e293b;
+        padding: 10px 15px;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        border-bottom: 1px solid #2e3c54;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 15px;
     }
-    /* Tombol Manajemen (Ungu) */
-    div[data-testid="stButton"] button:has(p:contains("Masuk Portal Approval")),
-    div[data-testid="stButton"] button:has(p:contains("LOGIN")) {
-        background: linear-gradient(90deg, #6431CE, #7C45F2) !important; color: white !important;
+
+    /* 6. WARNA TOMBOL */
+    div[data-testid="stButton"] button {
+        border-radius: 6px !important;
+        font-weight: bold !important;
     }
-    
-    div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #10b981 !important; color: white !important; }
-    div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ef4444 !important; color: white !important; }
+    div[data-testid="stButton"] button:has(p:contains("Kirim Pengajuan")), 
+    div[data-testid="stButton"] button:has(p:contains("LOGIN")),
+    div[data-testid="stButton"] button:has(p:contains("Portal")) {
+        background-color: #2563eb !important; color: white !important; border: none !important;
+    }
+    div[data-testid="stButton"] button:has(p:contains("Dukungan Teknis")),
     div[data-testid="stButton"] button:has(p:contains("Kembali")), div[data-testid="stButton"] button:has(p:contains("Keluar")) {
-        background: rgba(255, 255, 255, 0.1) !important; color: white !important; border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        background-color: #334155 !important; color: white !important; border: none !important;
     }
+    div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #10b981 !important; color: white !important; border:none !important;}
+    div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ef4444 !important; color: white !important; border:none !important;}
 
-    /* 5. TABEL DASHBOARD (RAPAT & TULISAN BESAR) */
+    /* 7. STYLING TABEL DASHBOARD ADMIN/GL AGAR RAPI & BESAR DI HP */
     @media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
     
     div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
         background-color: rgba(255,255,255,0.02) !important; 
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 10px !important; 
-        padding: 5px !important;
+        padding: 5px !important; 
         margin-bottom: 20px !important; 
         overflow-x: auto !important;
     }
@@ -258,12 +292,11 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HALAMAN LANDING PAGE
+# HALAMAN LANDING PAGE (Sesuai Desain OVERTIX)
 # ==========================================
 if st.session_state.app_mode == "landing":
     st.write("<br><br>", unsafe_allow_html=True)
     
-    # MENAMPILKAN LOGO OVERTIX.PNG
     col_img1, col_img2, col_img3 = st.columns([1, 2, 1])
     with col_img2:
         try:
@@ -271,7 +304,6 @@ if st.session_state.app_mode == "landing":
         except:
             st.markdown("<h1 style='text-align: center; color: white;'>✓ OVERTIX</h1>", unsafe_allow_html=True)
 
-    # TEKS DI BAWAH LOGO
     st.markdown("""
     <div style="text-align: center; margin-bottom: 40px;">
         <p style="color: #8292a6; font-size: 14px; letter-spacing: 2px; font-weight: 600; margin-top: -10px;">
@@ -294,7 +326,6 @@ if st.session_state.app_mode == "landing":
     </div>
     """, unsafe_allow_html=True)
 
-    # Cards Section
     col_space1, col1, col2, col_space2 = st.columns([1, 3, 3, 1])
     
     with col1:
@@ -308,10 +339,7 @@ if st.session_state.app_mode == "landing":
         </div>
         """, unsafe_allow_html=True)
         if st.button("→ Buat Form SPL", use_container_width=True):
-            st.session_state.role = "Karyawan"
-            st.session_state.logged_in = True
-            st.session_state.app_mode = "main"
-            st.rerun()
+            st.session_state.role = "Karyawan"; st.session_state.logged_in = True; st.session_state.app_mode = "main"; st.rerun()
 
     with col2:
         st.markdown("""
@@ -324,8 +352,7 @@ if st.session_state.app_mode == "landing":
         </div>
         """, unsafe_allow_html=True)
         if st.button("→ Masuk Portal Approval", use_container_width=True):
-            st.session_state.app_mode = "login"
-            st.rerun()
+            st.session_state.app_mode = "login"; st.rerun()
 
     st.markdown("<p style='text-align: center; color: #475569; font-size: 12px; margin-top: 60px;'>© 2026 PT. Saptaindra Sejati | Created by Qisma Rosalina Wahda</p>", unsafe_allow_html=True)
 
@@ -363,7 +390,26 @@ elif st.session_state.app_mode == "login":
 # HALAMAN DASHBOARD UTAMA
 # ==========================================
 elif st.session_state.app_mode == "main" and st.session_state.logged_in:
-    if st.session_state.role != "Karyawan":
+    
+    # HEADER KARYAWAN (SIDE BY SIDE)
+    if st.session_state.role == "Karyawan":
+        st.markdown("""
+        <div style='display: flex; justify-content: space-between; align-items: center; padding: 10px 0;'>
+            <div>
+                <h2 style='margin:0;'><span style='color: #0061ff;'>✓</span> OVERTIX</h2>
+                <p style='margin:0; font-size:12px; color:#94a3b8;'>Smart Overtime Execution System</p>
+            </div>
+            <div style='display: flex; align-items: center;'>
+                <span style='margin-right: 15px;'>🔔</span>
+                <span>👤 PT. Saptaindra Sejati ▾</span>
+            </div>
+        </div>
+        <h3 style='margin-top: 20px; border-bottom: 1px solid #2e3c54; padding-bottom: 10px;'>Sistem SPL Digital - Portal Karyawan</h3>
+        <p style='color: #64748b;'><span style='color: #60a5fa; border-bottom: 2px solid #60a5fa; padding-bottom: 5px;'>SPL Karyawan</span> &nbsp;&nbsp;&nbsp; Nav Menu</p>
+        <br>
+        """, unsafe_allow_html=True)
+    else:
+        # Header Admin / GL / SH
         with st.sidebar:
             st.markdown("### ⚙️ Pengaturan Akun")
             with st.expander("🔑 Ganti Password", expanded=False):
@@ -379,54 +425,104 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                         else:
                             user_data["password"] = pass_baru; save_users(db_pass); st.success("✅ Diperbarui!")
 
-    col_title, col_logout = st.columns([8, 2])
-    with col_title:
-        st.title("📄 Pengisian Form SPL" if st.session_state.role == "Karyawan" else f"📄 Dashboard {st.session_state.role}")
-        if st.session_state.role != "Karyawan": st.markdown(f"**👤 Pengguna Aktif:** {st.session_state.username}")
-    with col_logout:
-        st.write("") 
-        if st.button("🚪 Keluar / Beranda" if st.session_state.role == "Karyawan" else "🚪 Logout", use_container_width=True):
-            st.session_state.logged_in = False; st.session_state.role = ""; st.session_state.username = ""; st.session_state.app_mode = "landing"; st.cache_data.clear(); st.rerun()
-    st.write("---")
-    
+        col_title, col_logout = st.columns([8, 2])
+        with col_title:
+            st.title(f"📄 Dashboard {st.session_state.role}")
+            st.markdown(f"**👤 Pengguna Aktif:** {st.session_state.username}")
+        with col_logout:
+            st.write("") 
+            if st.button("🚪 Logout Akun", use_container_width=True):
+                st.session_state.logged_in = False; st.session_state.role = ""; st.session_state.username = ""; st.session_state.app_mode = "landing"; st.cache_data.clear(); st.rerun()
+        st.write("---")
+
     config_del = load_config()
 
-    # --- KARYAWAN ---
+    # --- KARYAWAN (TAMPILAN SIDE-BY-SIDE SEPERTI GAMBAR) ---
     if st.session_state.role == "Karyawan":
-        with st.form("form_spl", clear_on_submit=True):
-            col1, col2 = st.columns(2)
-            nama = col1.text_input("Nama Karyawan *")
-            nrp = col2.text_input("NRP *") 
-            cs, cp = st.columns(2)
-            section = cs.selectbox("Section", ["Logistik"]) 
-            perusahaan = cp.selectbox("Nama Perusahaan", ["PT. Saptaindra Sejati", "PT. Cheisa Mandiri Utama", "PT. Borneo Mura Perkasa"])
-            ct, ch = st.columns(2)
-            tgl = ct.date_input("Tanggal", value=get_wib_time().date(), disabled=True)
-            shift = ch.selectbox("Shift Lembur", ["Shift 1", "Shift 2"])
-            pengawas_tujuan = st.selectbox("Pengawas (GL) Yang Bertugas", LIST_GL)
+        col_form, col_table = st.columns([1, 1.3]) # Pembagian rasio layar
+        
+        # SISI KIRI: FORM PENGISIAN
+        with col_form:
+            st.markdown("<div class='card-header'>PENGISIAN FORM SPL</div>", unsafe_allow_html=True)
+            with st.container(border=True):
+                with st.form("form_spl", clear_on_submit=True):
+                    nama = st.text_input("Name")
+                    
+                    c_nrp, c_sec = st.columns(2)
+                    nrp = c_nrp.text_input("NRP") 
+                    section = c_sec.selectbox("Section", ["Production", "Logistik", "Maintenance"]) 
+                    
+                    perusahaan = "PT. Saptaindra Sejati"
+                    shift = "Shift 1"
+                    pengawas_tujuan = "Bapak Andi (GL 1)"
+                    
+                    c_tgl, c_jam = st.columns(2)
+                    tgl = c_tgl.date_input("Tanggal", value=get_wib_time().date())
+                    jam_input = c_jam.text_input("Jam Lembur", placeholder="Contoh: 17:00 - 21:00")
+                    
+                    alasan = st.text_area("Keterangan Lembur", placeholder="Contoh: Pusat Bantuan", height=100)
+                    
+                    c_btn1, c_btn2 = st.columns(2)
+                    submitted = c_btn1.form_submit_button("Kirim Pengajuan Lembur", use_container_width=True)
+                    dukungan = c_btn2.form_submit_button("Dukungan Teknis", use_container_width=True)
+                    
+                    if submitted:
+                        if not nama.strip() or not nrp.strip() or not jam_input.strip() or not alasan.strip(): 
+                            st.error("⚠️ GAGAL: Semua kolom wajib diisi!")
+                        elif " - " not in jam_input:
+                            st.error("⚠️ GAGAL: Format Jam Lembur salah, contoh: 17:00 - 21:00")
+                        else:
+                            df = get_db()
+                            new_data = {
+                                "ID": str(int(time.time())), "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), 
+                                "Jam": jam_input, "Perusahaan": perusahaan, "Alasan": alasan, 
+                                "Pengawas_Tujuan": pengawas_tujuan, 
+                                "Status": "Pending GL", "Waktu_GL": "", "Nama_GL": "", "Waktu_SH": "", "Nama_SH": "", "Alasan_Tolak": ""
+                            }
+                            save_db(pd.concat([df, pd.DataFrame([new_data])], ignore_index=True))
+                            st.success(f"✅ BERHASIL: SPL terkirim!")
+                            time.sleep(1); st.rerun()
+
+        # SISI KANAN: DAFTAR PENGAJUAN (HTML TABLE CUSTOM - KECIL/RAPAT, TULISAN BESAR)
+        with col_table:
+            st.markdown("<div class='card-header'>DAFTAR PENGAJUAN LEMBUR SAYA</div>", unsafe_allow_html=True)
             
-            st.markdown("**Waktu Lembur:**")
-            col_jam_awal, col_jam_akhir = st.columns(2)
-            list_jam = [f"{i:02d}" for i in range(24)]; list_menit = [f"{i:02d}" for i in range(60)]
-            with col_jam_awal:
-                c1, c2 = st.columns(2)
-                jam_a = c1.selectbox("Jam Mulai", list_jam); menit_a = c2.selectbox("Menit Mulai", list_menit)
-            with col_jam_akhir:
-                c3, c4 = st.columns(2)
-                jam_s = c3.selectbox("Jam Selesai", list_jam); menit_s = c4.selectbox("Menit Selesai", list_menit)
-            
-            alasan = st.text_area("Keterangan Lembur *")
-            st.markdown("*Keterangan: Tanda (*) wajib diisi*")
-            if st.form_submit_button("Kirim Pengajuan Lembur"):
-                waktu_awal_menit = (int(jam_a) * 60) + int(menit_a)
-                waktu_akhir_menit = (int(jam_s) * 60) + int(menit_s)
-                if not nama.strip() or not nrp.strip() or not alasan.strip(): st.error("⚠️ GAGAL: Nama, NRP, Keterangan wajib diisi!")
-                elif waktu_akhir_menit <= waktu_awal_menit: st.error("⚠️ GAGAL: Jam Akhir harus lebih besar dari Jam Awal!")
-                else:
-                    df = get_db()
-                    new_data = {"ID": str(int(time.time())), "Nama": nama, "NRP": nrp, "Section": section, "Shift": shift, "Tanggal": str(tgl), "Jam": f"{jam_a}:{menit_a} - {jam_s}:{menit_s}", "Perusahaan": perusahaan, "Alasan": alasan, "Pengawas_Tujuan": pengawas_tujuan, "Status": "Pending GL", "Waktu_GL": "", "Nama_GL": "", "Waktu_SH": "", "Nama_SH": "", "Alasan_Tolak": ""}
-                    save_db(pd.concat([df, pd.DataFrame([new_data])], ignore_index=True))
-                    st.success(f"✅ BERHASIL: SPL untuk {nama} terkirim!"); time.sleep(1.5); st.rerun()
+            df = get_db()
+            if df.empty:
+                st.info("Belum ada riwayat pengajuan lembur.")
+            else:
+                df_karyawan = df.tail(10).copy()
+                df_karyawan = df_karyawan.reset_index(drop=True)
+                
+                html_table = "<div class='custom-table-container'><table class='custom-table'>"
+                html_table += "<tr><th>NO.</th><th>NAMA</th><th>NRP</th><th>SECTION</th><th>TANGGAL</th><th>JAM<br>LEMBUR</th><th>STATUS</th><th>PENGAWAS<br>TUJUAN</th></tr>"
+                
+                for i, row in df_karyawan.iterrows():
+                    status_text = str(row['Status']).upper()
+                    if "FINAL" in status_text: status_col = "<span style='color:#10b981; font-weight:bold;'>FINAL<br>APPROVED</span>"
+                    elif "DITOLAK" in status_text: status_col = "<span style='color:#ef4444; font-weight:bold;'>DITOLAK</span>"
+                    else: status_col = f"<span style='color:#facc15; font-weight:bold;'>{status_text.replace(' ', '<br>')}</span>"
+                    
+                    html_table += f"<tr>"
+                    html_table += f"<td>{i+1}.</td><td>{row['Nama']}</td><td>{row['NRP']}</td><td>{row['Section']}</td>"
+                    try: tgl_str = datetime.strptime(row['Tanggal'], "%Y-%m-%d").strftime("%d/%m/%Y")
+                    except: tgl_str = row['Tanggal']
+                    html_table += f"<td>{tgl_str}</td>"
+                    
+                    jam_arr = str(row['Jam']).split(" - ")
+                    jam_html = f"{jam_arr[0]} -<br>{jam_arr[1]}" if len(jam_arr)==2 else row['Jam']
+                    
+                    html_table += f"<td>{jam_html}</td><td>{status_col}</td>"
+                    peng_tujuan = str(row['Pengawas_Tujuan']).replace(' (GL 1)','<br>(GL 1)')
+                    html_table += f"<td>{peng_tujuan}</td></tr>"
+                    
+                html_table += "</table></div>"
+                st.markdown(html_table, unsafe_allow_html=True)
+                
+        st.write("<br><hr>", unsafe_allow_html=True)
+        col_out1, col_out2 = st.columns([8, 2])
+        if col_out2.button("🚪 Keluar ke Beranda", use_container_width=True):
+            st.session_state.logged_in = False; st.session_state.role = ""; st.session_state.app_mode = "landing"; st.rerun()
 
     # --- GL/UH ---
     elif st.session_state.role == "GL/UH":
@@ -455,12 +551,21 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                         with st.popover("Tolak"):
                             alasan_tolak = st.text_area("Masukkan Alasan Penolakan:", key=f"txt_tolak_gl_{row['ID']}")
                             if st.button("Konfirmasi Tolak", key=f"gl_del_{row['ID']}"):
-                                if not alasan_tolak.strip(): st.error("Alasan tidak boleh kosong!")
+                                if not alasan_tolak.strip(): st.error("Alasan penolakan tidak boleh kosong!")
                                 else:
                                     df_gl.loc[idx, ["Status", "Waktu_GL", "Nama_GL", "Alasan_Tolak"]] = ["Ditolak", get_wib_time().strftime("%Y-%m-%d %H:%M"), st.session_state.username, alasan_tolak]; save_db(df_gl); st.rerun()
 
+        # ---> BAGIAN YANG SEMPAT HILANG (RIWAYAT GL) <---
+        st.subheader("Riwayat Pekerjaan (Sebagai GL)")
+        history_gl = df_gl[((df_gl["Status"] == "Pending SH") | (df_gl["Status"] == "Final Approved") | (df_gl["Status"] == "Ditolak")) & (df_gl["Nama_GL"] == st.session_state.username)]
+        if not history_gl.empty:
+            for idx, row in history_gl.iterrows():
+                if row['Status'] == 'Ditolak': st.error(f"❌ **{row['Nama']}** - {row['Tanggal']} (Ditolak pada: {row['Waktu_GL']}) | **Alasan:** {row.get('Alasan_Tolak', '')}")
+                else: st.write(f"✅ **{row['Nama']}** - {row['Tanggal']} (Status saat ini: {row['Status']})")
+        # ------------------------------------------------
+
         if config_del["status_aktif"] and config_del["pjs_nama"] == st.session_state.username:
-            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("<br><br>", unsafe_allow_html=True)
             st.warning("👑 **TUGAS PENDELEGASIAN:** Anda saat ini bertindak sebagai **Pjs. Section Head**.")
             st.subheader("Verifikasi Akhir (Kewenangan Pjs. Section Head)")
             pending_sh = df_gl[df_gl["Status"] == "Pending SH"]
@@ -483,11 +588,22 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                                 df_gl.loc[idx, ["Status", "Waktu_SH", "Nama_SH"]] = ["Final Approved", get_wib_time().strftime("%Y-%m-%d %H:%M"), f"{st.session_state.username} (PJS)"]; save_db(df_gl); st.rerun()
                         with cols[9]:
                             with st.popover("Tolak"):
-                                alasan_pjs = st.text_area("Alasan Penolakan:", key=f"txt_tolak_pjs_{row['ID']}")
+                                alasan_pjs = st.text_area("Masukkan Alasan Penolakan:", key=f"txt_tolak_pjs_{row['ID']}")
                                 if st.button("Konfirmasi Tolak", key=f"pjs_del_{row['ID']}"):
-                                    if not alasan_pjs.strip(): st.error("Alasan tidak boleh kosong!")
+                                    if not alasan_pjs.strip(): st.error("Alasan penolakan tidak boleh kosong!")
                                     else:
                                         df_gl.loc[idx, ["Status", "Waktu_SH", "Nama_SH", "Alasan_Tolak"]] = ["Ditolak", get_wib_time().strftime("%Y-%m-%d %H:%M"), f"{st.session_state.username} (PJS)", alasan_pjs]; save_db(df_gl); st.rerun()
+
+            st.subheader("Arsip Dokumen Selesai (Sebagai Pjs. Section Head)")
+            history_pjs = df_gl[(df_gl["Status"] == "Final Approved") & (df_gl["Nama_SH"] == f"{st.session_state.username} (PJS Section Head)")]
+            if history_pjs.empty: st.write("Belum ada dokumen SPL yang Anda selesaikan sebagai Pjs.")
+            else:
+                for idx, row in history_pjs.iterrows():
+                    col1, col2 = st.columns([3, 1])
+                    with col1: st.write(f"📄 **SPL {row['Nama']} & {row['Tanggal']}** (Disetujui pada: {row['Waktu_SH']})")
+                    with col2:
+                        file_pdf = create_pdf(row)
+                        with open(file_pdf, "rb") as f: st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_pjs_fin_{row['ID']}")
 
     # --- SECTION HEAD ---
     elif st.session_state.role == "Section Head":
@@ -502,7 +618,7 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     if st.button("🚀 Aktifkan Delegasi (Saya Offsite)"): config_del["status_aktif"] = True; config_del["pjs_nama"] = pjs_pilihan; save_config(config_del); st.rerun()
                 else:
                     if st.button("🛑 Cabut Delegasi (Saya Onsite)"): config_del["status_aktif"] = False; config_del["pjs_nama"] = ""; save_config(config_del); st.rerun()
-            if config_del["status_aktif"]: st.error(f"🚨 **STATUS:** Kewenangan dialihkan kepada **{config_del['pjs_nama']}**.")
+            if config_del["status_aktif"]: st.error(f"🚨 **STATUS:** Kewenangan Section Head saat ini dialihkan kepada **{config_del['pjs_nama']}**.")
         st.markdown("<hr>", unsafe_allow_html=True)
 
         df_sh = get_db()
@@ -545,12 +661,18 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
                     file_pdf = create_pdf(row)
                     with open(file_pdf, "rb") as f: st.download_button("Download PDF", f, file_name=file_pdf, key=f"dl_sh_fin_{row['ID']}")
 
+        st.subheader("❌ Arsip Dokumen Ditolak")
+        rejected_sh = df_sh[(df_sh["Status"] == "Ditolak") & (df_sh["Nama_SH"] == "Haris Abi Wibowo")]
+        if rejected_sh.empty: st.write("Belum ada riwayat penolakan dari Anda.")
+        else:
+            for idx, row in rejected_sh.iterrows():
+                st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** (Anda tolak pada: {row['Waktu_SH']}) | **Alasan:** {row.get('Alasan_Tolak', '')}")
+
     # --- ADMIN ---
     elif st.session_state.role == "Admin":
         df_admin_raw = get_db()
         st.subheader("🎛️ Filter Data SPL")
         
-        # --- FITUR FILTER LENGKAP ---
         mode_filter = st.radio("Pilih Mode Filter:", ["Semua Data", "Tanggal", "Bulan", "Tahun", "Range Tanggal"], horizontal=True)
         df_admin = df_admin_raw.copy()
         nama_file_excel = "Rekapan_SPL_Semua"
@@ -649,7 +771,8 @@ elif st.session_state.app_mode == "main" and st.session_state.logged_in:
             else:
                 for idx, row in rejected_admin.iterrows():
                     penolak = row['Nama_SH'] if pd.notna(row['Nama_SH']) and str(row['Nama_SH']).strip() and str(row['Nama_SH']) != "nan" else row['Nama_GL']
-                    st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** ➔ Ditolak oleh: **{penolak}** | **Alasan:** {row.get('Alasan_Tolak', '')}")
+                    alasan = row.get('Alasan_Tolak', 'Tidak ada alasan.')
+                    st.error(f"❌ **SPL {row['Nama']} & {row['Tanggal']}** ➔ Ditolak oleh: **{penolak}** | **Alasan:** {alasan}")
             st.markdown("---")
             
         # --- MANAJEMEN AKUN ---
