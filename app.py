@@ -14,15 +14,15 @@ from google.oauth2.service_account import Credentials
 # ==========================================
 SHEET_ID = "1YV7ro3PYla3D0ZbIhNsdFwxDSh1XZmal9aO99pebG5U"
 
-# Konfigurasi Halaman
+# Konfigurasi Halaman & CSS Kustom
 st.set_page_config(page_title="Sistem SPL Digital", layout="wide")
 
 # ==========================================
-# CSS GLOBAL (HILANGKAN MENU & PERBAIKI TABEL)
+# CSS SAKTI: OVERTIX THEME + FIX TEKS HITAM + TABEL RAPI
 # ==========================================
 st.markdown("""
 <style>
-/* 1. SEMBUNYIKAN MENU STREAMLIT, GITHUB ICON, & TOOLBAR CLOUD */
+/* 1. HILANGKAN MENU DEVELOPER & GITHUB */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
@@ -30,12 +30,66 @@ header {visibility: hidden;}
 [data-testid="stToolbar"] {display: none !important; visibility: hidden !important;}
 [data-testid="stHeader"] {display: none !important; visibility: hidden !important;}
 
-/* 2. WARNA TOMBOL UTAMA TABEL */
+/* 2. TEMA BACKGROUND OVERTIX (DARK BLUE) */
+.stApp {
+    background: radial-gradient(circle at top right, #111a30 0%, #060913 100%) !important;
+    color: white !important;
+}
+
+/* 3. PAKSA TEKS INPUT & DROPDOWN JADI PUTIH TERANG */
+input[type="text"], input[type="password"] {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important; /* Paksa di Chrome/HP */
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+input::placeholder {
+    color: #a0aabf !important;
+    -webkit-text-fill-color: #a0aabf !important;
+}
+
+/* Memaksa teks dalam Selectbox (Dropdown) jadi putih */
+div[data-baseweb="select"] > div {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+div[data-baseweb="select"] span {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+/* Warna List Item saat dropdown diklik */
+div[data-baseweb="popover"] ul {
+    background-color: #111a30 !important;
+}
+div[data-baseweb="popover"] li {
+    color: #ffffff !important;
+}
+
+/* Warna Label di atas input */
+.stSelectbox label, .stTextInput label {
+    color: #a0aabf !important;
+}
+
+/* 4. WARNA TOMBOL UMUM */
 div[data-testid="stButton"] button:has(p:contains("Approve")) { background-color: #00c853 !important; color: white !important; font-weight: bold !important; border:none !important;}
 div[data-testid="stButton"] button:has(p:contains("Tolak")) { background-color: #ff1744 !important; color: white !important; font-weight: bold !important; border:none !important;}
 div[data-testid="stPopoverBody"] { width: 650px !important; max-width: 95vw !important; }
 
-/* 3. STYLING TABEL DASHBOARD AGAR RAPI (ANTI TUMPANG TINDIH) */
+/* 5. TOMBOL UTAMA (LOGIN / LANDING) */
+div[data-testid="stButton"] button:has(p:contains("LOGIN")), div[data-testid="stButton"] button:has(p:contains("Portal")) {
+    background: linear-gradient(90deg, #0d6efd, #0a58ca) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+}
+div[data-testid="stButton"] button:has(p:contains("Kembali")) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 6. STYLING TABEL DASHBOARD AGAR RAPI DI HP */
 @media (max-width: 768px) { body, .stApp { overflow-x: hidden !important; } }
 div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) {
     background-color: rgba(255,255,255,0.03) !important;
@@ -71,88 +125,91 @@ div[data-testid="stVerticalBlock"]:has(> div.element-container .table-marker) p 
 # ==========================================
 # SETUP SESSION STATE & ROUTING
 # ==========================================
-if "app_mode" not in st.session_state: st.session_state.app_mode = "landing"
+if "app_mode" not in st.session_state:
+    st.session_state.app_mode = "landing"
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.role = ""
     st.session_state.username = "" 
 
-def get_wib_time(): return datetime.utcnow() + timedelta(hours=7)
+def get_wib_time():
+    return datetime.utcnow() + timedelta(hours=7)
 
 # ==========================================
 # KONEKSI KE GOOGLE SHEETS
 # ==========================================
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
 @st.cache_resource
 def get_gsheets_client():
     try:
         creds_dict = json.loads(st.secrets["gcp_credentials"])
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPE)
-        return gspread.authorize(creds)
+        client = gspread.authorize(creds)
+        return client
     except Exception as e:
-        st.error(f"Gagal memuat kredensial: {e}")
+        st.error(f"Gagal memuat kredensial dari Streamlit Secrets. Error: {e}")
         st.stop()
 
 def get_worksheet(sheet_name):
     client = get_gsheets_client()
     try:
         sh = client.open_by_key(SHEET_ID)
-        try: return sh.worksheet(sheet_name)
-        except: return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
+        try:
+            return sh.worksheet(sheet_name)
+        except:
+            return sh.add_worksheet(title=sheet_name, rows="1000", cols="20")
     except Exception as e:
-        st.error(f"Gagal membuka Spreadsheet: {e}")
+        st.error(f"Gagal membuka Spreadsheet. Error Sistem: {e}")
         st.stop()
 
 def safe_update(sheet, data, range_name="A1"):
-    try: sheet.update(values=data, range_name=range_name)
-    except TypeError: sheet.update(range_name, data)
+    try:
+        sheet.update(values=data, range_name=range_name)
+    except TypeError:
+        sheet.update(range_name, data)
 
 # ==========================================
-# DATABASE PENGGUNA
+# DATABASE PENGGUNA (G-SHEETS)
 # ==========================================
 @st.cache_data(ttl=60)
 def load_users():
     sheet = get_worksheet("Users")
     data = sheet.get_all_records()
-    if not data: return {}
-    user_dict = {}
-    for row in data:
-        user_dict[str(row["Username"])] = {
-            "password": str(row["Password"]), "failed_attempts": int(row["Gagal"]), 
-            "blocked": str(row["Blocked"]).lower() == "true", "role": str(row["Role"])
+    if not data:
+        default_users = {
+            "Bapak Andi (GL 1)": {"password": "123", "failed_attempts": 0, "blocked": False, "role": "GL/UH"},
+            "Section Head": {"password": "123", "failed_attempts": 0, "blocked": False, "role": "Section Head"},
+            "Administrator": {"password": "123", "failed_attempts": 0, "blocked": False, "role": "Admin"}
         }
-    return user_dict
+        sheet.clear()
+        rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
+        for k, v in default_users.items():
+            rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
+        safe_update(sheet, rows)
+        return default_users
+    else:
+        user_dict = {}
+        for row in data:
+            user_dict[str(row["Username"])] = {
+                "password": str(row["Password"]),
+                "failed_attempts": int(row["Gagal"]),
+                "blocked": str(row["Blocked"]).lower() == "true",
+                "role": str(row["Role"])
+            }
+        return user_dict
 
 def save_users(users_data):
     sheet = get_worksheet("Users")
     sheet.clear()
     rows = [["Username", "Password", "Gagal", "Blocked", "Role"]]
-    for k, v in users_data.items(): rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
+    for k, v in users_data.items():
+        rows.append([k, v["password"], v["failed_attempts"], str(v["blocked"]), v["role"]])
     safe_update(sheet, rows)
     st.cache_data.clear()
-
-@st.cache_data(ttl=60)
-def load_config():
-    sheet = get_worksheet("Config")
-    data = sheet.get_all_records()
-    if not data: return {"status_aktif": False, "pjs_nama": ""}
-    row = data[0]
-    return {"status_aktif": str(row["status_aktif"]).lower() == "true", "pjs_nama": str(row["pjs_nama"])}
-
-def save_config(config):
-    sheet = get_worksheet("Config")
-    sheet.clear()
-    rows = [["status_aktif", "pjs_nama"], [str(config["status_aktif"]), config["pjs_nama"]]]
-    safe_update(sheet, rows)
-    st.cache_data.clear()
-
-try:
-    users_db = load_users()
-    LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
-except: LIST_GL = ["Bapak Andi (GL 1)"]
 
 # ==========================================
-# DATABASE SPL 
+# DATABASE SPL (G-SHEETS)
 # ==========================================
 @st.cache_data(ttl=15)
 def get_db():
@@ -166,7 +223,8 @@ def get_db():
     else:
         df = pd.DataFrame(data)
         for c in cols:
-            if c not in df.columns: df[c] = ""
+            if c not in df.columns:
+                df[c] = ""
         return df.astype(str)
 
 def save_db(df):
@@ -177,6 +235,38 @@ def save_db(df):
     safe_update(sheet, data_to_save)
     st.cache_data.clear()
 
+# ==========================================
+# KONFIGURASI PENDELEGASIAN
+# ==========================================
+@st.cache_data(ttl=60)
+def load_config():
+    sheet = get_worksheet("Config")
+    data = sheet.get_all_records()
+    if not data:
+        default_cfg = {"status_aktif": False, "pjs_nama": ""}
+        sheet.clear()
+        safe_update(sheet, [["status_aktif", "pjs_nama"], [str(default_cfg["status_aktif"]), default_cfg["pjs_nama"]]])
+        return default_cfg
+    else:
+        row = data[0]
+        return {"status_aktif": str(row["status_aktif"]).lower() == "true", "pjs_nama": str(row["pjs_nama"])}
+
+def save_config(config):
+    sheet = get_worksheet("Config")
+    sheet.clear()
+    rows = [["status_aktif", "pjs_nama"], [str(config["status_aktif"]), config["pjs_nama"]]]
+    safe_update(sheet, rows)
+    st.cache_data.clear()
+
+try:
+    users_db = load_users()
+    LIST_GL = [k for k, v in users_db.items() if v["role"] == "GL/UH"]
+except:
+    LIST_GL = ["Bapak Andi (GL 1)"]
+
+# ==========================================
+# FUNGSI PENDUKUNG
+# ==========================================
 def hitung_total_lembur_str(jam_str):
     if pd.notna(jam_str) and " - " in str(jam_str):
         try:
@@ -304,136 +394,72 @@ def proses_login(username_key, password_input):
     return False
 
 # ==========================================
-# HALAMAN UTAMA (LANDING & LOGIN) - MODERN THEME
+# HALAMAN UTAMA (LANDING & LOGIN) - OVERTIX THEME
 # ==========================================
-if st.session_state.app_mode in ["landing", "login"]:
-    # CSS KHUSUS HALAMAN DEPAN (Desain Overtix)
-    st.markdown("""
-    <style>
-    .stApp {
-        background: radial-gradient(circle at top, #0f162e 0%, #060913 100%) !important;
-        color: white !important;
-    }
-    
-    /* Styling Card/Box */
-    div[data-testid="column"]:nth-child(2) {
-        background: rgba(20, 25, 45, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 20px !important;
-        padding: 30px !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
-        backdrop-filter: blur(10px) !important;
-    }
-    
-    /* Styling Input Field */
-    .stSelectbox > div > div, .stTextInput > div > div > input {
-        background-color: rgba(10, 15, 30, 0.8) !important;
-        color: white !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 8px !important;
-        padding: 10px !important;
-    }
-    
-    /* Label teks */
-    .stSelectbox label, .stTextInput label {
-        color: #adb5bd !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Styling Tombol Login / Landing Utama */
-    div[data-testid="stButton"] button {
-        background: linear-gradient(90deg, #0d6efd, #0a58ca) !important;
-        color: white !important;
-        border: none !important;
-        width: 100% !important;
-        border-radius: 8px !important;
-        font-weight: bold !important;
-        font-size: 16px !important;
-        padding: 10px !important;
-        transition: 0.3s ease !important;
-    }
-    div[data-testid="stButton"] button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.4) !important;
-    }
-    
-    /* Tombol abu-abu untuk kembali/pilih mode lain */
-    div[data-testid="stButton"] button:has(p:contains("Kembali")),
-    div[data-testid="stButton"] button:has(p:contains("Karyawan")) {
-        background: rgba(255, 255, 255, 0.1) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        box-shadow: none !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+if st.session_state.app_mode == "landing":
+    st.write("<br><br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="color: white; font-weight: 800; font-size: 42px; letter-spacing: 2px;">
+                <span style="color: #0d6efd;">✓</span> OVERTIX
+            </h1>
+            <p style="color: #a0aabf; font-size: 16px; margin-top: -10px; letter-spacing: 1px;">SMART OVERTIME EXECUTION SYSTEM</p>
+            <hr style="border: 0.5px solid rgba(255,255,255,0.1); margin: 20px 0;">
+            <h3 style="color: white; margin-top: 20px; font-size: 22px;">Selamat Datang!</h3>
+            <p style="color: #6c757d; font-size: 14px;">Silakan pilih portal akses di bawah ini:</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.write("<br><br><br>", unsafe_allow_html=True) # Spacer atas
-    
-    if st.session_state.app_mode == "landing":
-        # Desain Landing
-        col1, col2, col3 = st.columns([1, 1.2, 1])
-        with col2:
-            st.markdown("""
-            <div style="text-align: center; margin-bottom: 25px;">
-                <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
-                    <span style="color: #0d6efd;">✓</span> OVERTIX
-                </h1>
-                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Smart Overtime Execution System</p>
-                <h3 style="color: white; margin-top: 30px; font-size: 22px;">Selamat Datang!</h3>
-                <p style="color: #6c757d; font-size: 14px;">Silakan pilih portal untuk melanjutkan</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            if st.button("Input SPL", use_container_width=True):
-                st.session_state.role = "Karyawan"
-                st.session_state.logged_in = True
-                st.session_state.app_mode = "main"
-                st.rerun()
+        if st.button("📝 Masuk Portal Karyawan", use_container_width=True):
+            st.session_state.role = "Karyawan"
+            st.session_state.logged_in = True
+            st.session_state.app_mode = "main"
+            st.rerun()
+        
+        st.write("<br>", unsafe_allow_html=True)
+        
+        if st.button("🔐 Masuk Portal Manajemen", use_container_width=True):
+            st.session_state.app_mode = "login"
+            st.rerun()
             
-            if st.button("Masuk Portal Approval", use_container_width=True):
-                st.session_state.app_mode = "login"
-                st.rerun()
-                
+        st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 40px;'>© 2026 PT. Saptaindra Sejati. All rights reserved.</p>", unsafe_allow_html=True)
+
+elif st.session_state.app_mode == "login":
+    st.write("<br><br><br>", unsafe_allow_html=True)
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("""
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="color: white; font-weight: 800; font-size: 36px; letter-spacing: 1px;">
+                <span style="color: #0d6efd;">✓</span> OVERTIX
+            </h1>
+            <p style="color: #a0aabf; font-size: 15px; margin-top: -10px;">Portal Approval Manajemen</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
+        
+        if role != "Pilih...":
+            users_db = load_users()
+            u_list = [k for k, v in users_db.items() if v["role"] == role]
+            target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
+            pwd = st.text_input("Password", type="password")
+            
             st.write("<br>", unsafe_allow_html=True)
-                
-            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>© 2026 PT. Saptaindra Sejati. All rights reserved. </p>", unsafe_allow_html=True)
-            st.markdown("<p style='text-align: center; color: #495057; font-size: 12px; margin-top: 30px;'>Create by Q. Rosalina Wahda. </p>", unsafe_allow_html=True)
-
-
-    elif st.session_state.app_mode == "login":
-        # Desain Login
-        col1, col2, col3 = st.columns([1, 1.2, 1])
-        with col2:
-            st.markdown("""
-            <div style="text-align: center; margin-bottom: 25px;">
-                <h1 style="color: white; font-weight: 800; font-size: 32px; letter-spacing: 1px;">
-                    <span style="color: #0d6efd;">✓</span> SPL DIGITAL
-                </h1>
-                <p style="color: #adb5bd; font-size: 15px; margin-top: -10px;">Portal Approval</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            role = st.selectbox("Pilih Akses Jabatan:", ["Pilih...", "GL/UH", "Section Head", "Admin"])
-            
-            if role != "Pilih...":
-                users_db = load_users()
-                u_list = [k for k, v in users_db.items() if v["role"] == role]
-                target_user = "Section Head" if role == "Section Head" else ("Administrator" if role == "Admin" else st.selectbox("Pilih User", u_list))
-                pwd = st.text_input("Password", type="password")
-                
-                st.write("<br>", unsafe_allow_html=True)
-                if st.button("LOGIN", use_container_width=True):
-                    if proses_login(target_user, pwd):
-                        st.session_state.logged_in = True
-                        st.session_state.role = role
-                        st.session_state.username = target_user
-                        st.session_state.app_mode = "main"
-                        st.rerun()
-                        
-            st.write("<br>", unsafe_allow_html=True)
-            if st.button("⬅️ Kembali"):
-                st.session_state.app_mode = "landing"
-                st.rerun()
+            if st.button("LOGIN", use_container_width=True):
+                if proses_login(target_user, pwd):
+                    st.session_state.logged_in = True
+                    st.session_state.role = role
+                    st.session_state.username = target_user
+                    st.session_state.app_mode = "main"
+                    st.rerun()
+                    
+        st.write("<br>", unsafe_allow_html=True)
+        if st.button("⬅️ Kembali ke Beranda", use_container_width=True):
+            st.session_state.app_mode = "landing"
+            st.rerun()
 
 # ==========================================
 # HALAMAN DASHBOARD UTAMA
